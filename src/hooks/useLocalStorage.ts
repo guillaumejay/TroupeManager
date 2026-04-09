@@ -1,0 +1,31 @@
+import type { CampaignState } from '../types';
+import { INITIAL_STATE } from '../data/initialState';
+
+const STORAGE_KEY = 'troupe-manager-state';
+
+export function loadState(): CampaignState {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return INITIAL_STATE;
+    const parsed = JSON.parse(raw) as CampaignState;
+    // Basic shape validation
+    if (!parsed.marines || !parsed.scenarios || !parsed.dateCourante) {
+      console.warn('[TroupeManager] Corrupted localStorage — falling back to initial state');
+      return INITIAL_STATE;
+    }
+    return { ...parsed, highlightedMarineIds: parsed.highlightedMarineIds ?? [] };
+  } catch (e) {
+    console.warn('[TroupeManager] Failed to parse localStorage — falling back to initial state', e);
+    return INITIAL_STATE;
+  }
+}
+
+export function saveState(state: CampaignState): void {
+  try {
+    // Don't persist transient UI state
+    const { highlightedMarineIds: _, ...persisted } = state;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...persisted, highlightedMarineIds: [] }));
+  } catch (e) {
+    console.warn('[TroupeManager] Failed to save to localStorage', e);
+  }
+}
