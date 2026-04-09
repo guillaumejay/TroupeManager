@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CampaignProvider, useCampaign } from './context/CampaignContext';
 import { formatDateDisplay } from './utils/dates';
 import { RosterTable } from './components/roster/RosterTable';
+import { TimelineView } from './components/timeline/TimelineView';
 
 type Tab = 'roster' | 'timeline';
 
@@ -55,7 +56,7 @@ function AppContent() {
         {activeTab === 'roster' ? (
           <RosterTable />
         ) : (
-          <div className="text-gray-500 italic">Timeline — à implémenter (S04)</div>
+          <TimelineView />
         )}
       </main>
     </div>
