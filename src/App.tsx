@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CampaignProvider, useCampaign } from './context/CampaignContext';
 import { formatDateDisplay } from './utils/dates';
+import { RosterTable } from './components/roster/RosterTable';
 
 type Tab = 'roster' | 'timeline';
 
@@ -52,7 +53,7 @@ function AppContent() {
       {/* Content */}
       <main className="flex-1 p-6">
         {activeTab === 'roster' ? (
-          <div className="text-gray-500 italic">Roster — à implémenter (S02)</div>
+          <RosterTable />
         ) : (
           <div className="text-gray-500 italic">Timeline — à implémenter (S04)</div>
         )}
