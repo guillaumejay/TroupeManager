@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CampaignProvider, useCampaign } from './context/CampaignContext';
 import { formatDateDisplay } from './utils/dates';
+import { copyRosterToClipboard } from './utils/export';
 import { RosterTable } from './components/roster/RosterTable';
 import { TimelineView } from './components/timeline/TimelineView';
 
@@ -8,7 +9,14 @@ type Tab = 'roster' | 'timeline';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>('roster');
+  const [exportFeedback, setExportFeedback] = useState('');
   const { state, dispatch } = useCampaign();
+
+  const handleExport = async () => {
+    const ok = await copyRosterToClipboard(state.marines, state.dateCourante);
+    setExportFeedback(ok ? 'Copié !' : 'Copie via prompt');
+    setTimeout(() => setExportFeedback(''), 2000);
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
@@ -54,7 +62,17 @@ function AppContent() {
       {/* Content */}
       <main className="flex-1 p-6">
         {activeTab === 'roster' ? (
-          <RosterTable />
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <button
+                onClick={handleExport}
+                className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded transition-colors cursor-pointer"
+              >
+                {exportFeedback || 'Exporter le roster'}
+              </button>
+            </div>
+            <RosterTable />
+          </div>
         ) : (
           <TimelineView />
         )}
