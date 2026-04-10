@@ -3,13 +3,16 @@ import { CampaignProvider, useCampaign } from './context/CampaignContext';
 import { formatDateDisplay } from './utils/dates';
 import { copyRosterToClipboard } from './utils/export';
 import { RosterTable } from './components/roster/RosterTable';
+import { AddMarineModal } from './components/roster/AddMarineModal';
 import { TimelineView } from './components/timeline/TimelineView';
+import { SettingsView } from './components/settings/SettingsView';
 
-type Tab = 'roster' | 'timeline';
+type Tab = 'roster' | 'timeline' | 'settings';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>('roster');
   const [exportFeedback, setExportFeedback] = useState('');
+  const [showAddMarine, setShowAddMarine] = useState(false);
   const { state, dispatch } = useCampaign();
 
   const handleExport = async () => {
@@ -39,7 +42,7 @@ function AppContent() {
       <nav className="bg-gray-800 border-b border-gray-700 px-6 flex gap-1">
         <button
           onClick={() => setActiveTab('roster')}
-          className={`px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
+          className={`px-4 py-2 text-sm font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60 focus-visible:rounded ${
             activeTab === 'roster'
               ? 'text-amber-400 border-b-2 border-amber-400'
               : 'text-gray-400 hover:text-gray-200'
@@ -49,7 +52,7 @@ function AppContent() {
         </button>
         <button
           onClick={() => setActiveTab('timeline')}
-          className={`px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
+          className={`px-4 py-2 text-sm font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60 focus-visible:rounded ${
             activeTab === 'timeline'
               ? 'text-amber-400 border-b-2 border-amber-400'
               : 'text-gray-400 hover:text-gray-200'
@@ -57,13 +60,29 @@ function AppContent() {
         >
           Timeline
         </button>
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`ml-auto px-4 py-2 text-sm font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60 focus-visible:rounded ${
+            activeTab === 'settings'
+              ? 'text-amber-400 border-b-2 border-amber-400'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Settings
+        </button>
       </nav>
 
       {/* Content */}
       <main className="flex-1 p-6">
-        {activeTab === 'roster' ? (
+        {activeTab === 'roster' && (
           <div className="space-y-4">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowAddMarine(true)}
+                className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded transition-colors cursor-pointer"
+              >
+                + Ajouter un marine
+              </button>
               <button
                 onClick={handleExport}
                 className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded transition-colors cursor-pointer"
@@ -72,10 +91,11 @@ function AppContent() {
               </button>
             </div>
             <RosterTable />
+            {showAddMarine && <AddMarineModal onClose={() => setShowAddMarine(false)} />}
           </div>
-        ) : (
-          <TimelineView />
         )}
+        {activeTab === 'timeline' && <TimelineView />}
+        {activeTab === 'settings' && <SettingsView />}
       </main>
     </div>
   );

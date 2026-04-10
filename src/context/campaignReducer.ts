@@ -14,6 +14,13 @@ export function campaignReducer(state: CampaignState, action: CampaignAction): C
       };
     }
 
+    case 'ADD_MARINE': {
+      return {
+        ...state,
+        marines: [...state.marines, action.marine],
+      };
+    }
+
     case 'ADVANCE_DAY': {
       return {
         ...state,

@@ -46,7 +46,6 @@ export function TimelineView() {
                   .some((id) => highlightedMarineIds.includes(id))
               }
               isFirst={index === 0}
-              isLast={index === scenarios.length - 1}
             />
           ))}
           {/* Arrow cap */}

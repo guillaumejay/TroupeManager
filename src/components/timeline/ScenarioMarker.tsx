@@ -7,7 +7,6 @@ interface ScenarioMarkerProps {
   onClick: () => void;
   isActive: boolean;
   isFirst: boolean;
-  isLast: boolean;
 }
 
 export function ScenarioMarker({
@@ -16,7 +15,6 @@ export function ScenarioMarker({
   onClick,
   isActive,
   isFirst,
-  isLast,
 }: ScenarioMarkerProps) {
   return (
     <div className="flex flex-col items-center min-w-[200px] flex-1">

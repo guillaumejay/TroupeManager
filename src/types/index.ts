@@ -56,6 +56,7 @@ export interface CampaignState {
 
 export type CampaignAction =
   | { type: 'UPDATE_MARINE'; marineId: string; field: keyof Marine; value: Marine[keyof Marine] }
+  | { type: 'ADD_MARINE'; marine: Marine }
   | { type: 'ADVANCE_DAY' }
   | { type: 'ADD_SCENARIO'; scenario: Scenario; marineUpdates: MarineUpdate[] }
   | { type: 'HIGHLIGHT_MARINES'; marineIds: string[] }
