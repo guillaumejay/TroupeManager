@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { CampaignProvider, useCampaign } from './context/CampaignContext';
+import { GistSyncProvider } from './context/GistSyncProvider';
+import { useGistSyncContext } from './context/gistSyncContext';
+import type { SyncStatus } from './hooks/useGistSync';
 import { formatDateDisplay } from './utils/dates';
 import { copyRosterToClipboard } from './utils/export';
 import { RosterTable } from './components/roster/RosterTable';
@@ -8,6 +11,29 @@ import { TimelineView } from './components/timeline/TimelineView';
 import { SettingsView } from './components/settings/SettingsView';
 
 type Tab = 'roster' | 'timeline' | 'settings';
+
+const SYNC_META: Record<Exclude<SyncStatus, 'idle'>, { label: string; dotClass: string }> = {
+  saving: { label: 'Sauvegarde', dotClass: 'bg-amber-400 animate-pulse' },
+  loading: { label: 'Chargement', dotClass: 'bg-amber-400 animate-pulse' },
+  synced: { label: 'Sync', dotClass: 'bg-green-400' },
+  error: { label: 'Erreur', dotClass: 'bg-red-400' },
+  readonly: { label: 'Lecture', dotClass: 'bg-gray-400' },
+};
+
+function SyncIndicator() {
+  const { syncStatus, errorMessage } = useGistSyncContext();
+  if (syncStatus === 'idle') return null;
+  const { label, dotClass } = SYNC_META[syncStatus];
+  return (
+    <span
+      className="flex items-center gap-1.5 text-xs text-gray-400"
+      title={errorMessage ?? undefined}
+    >
+      <span className={`inline-block w-2 h-2 rounded-full ${dotClass}`} />
+      {label}
+    </span>
+  );
+}
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>('roster');
@@ -27,6 +53,7 @@ function AppContent() {
       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-bold tracking-wide">Troupe Manager</h1>
         <div className="flex items-center gap-4">
+          <SyncIndicator />
           <span className="text-sm text-gray-400">Date de campagne :</span>
           <span className="font-mono text-amber-400">{formatDateDisplay(state.dateCourante)}</span>
           <button
@@ -104,7 +131,9 @@ function AppContent() {
 function App() {
   return (
     <CampaignProvider>
-      <AppContent />
+      <GistSyncProvider>
+        <AppContent />
+      </GistSyncProvider>
     </CampaignProvider>
   );
 }
