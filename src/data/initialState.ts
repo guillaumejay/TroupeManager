@@ -58,4 +58,5 @@ export const INITIAL_STATE: CampaignState = {
 	scenarios: INITIAL_SCENARIOS,
 	dateCourante: INITIAL_DATE,
 	highlightedMarineIds: [],
+	events: [],
 };

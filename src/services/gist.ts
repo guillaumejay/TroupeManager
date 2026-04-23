@@ -58,6 +58,10 @@ export function isCampaignState(value: unknown): value is CampaignState {
 		return false;
 	}
 
+	if (candidate.events !== undefined && !Array.isArray(candidate.events)) {
+		return false;
+	}
+
 	return true;
 }
 

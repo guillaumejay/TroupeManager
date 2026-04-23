@@ -50,23 +50,21 @@ export function EditHealthModal({ marine, onClose }: EditHealthModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (conditionPhysique !== marine.conditionPhysique) {
-      dispatch({ type: 'UPDATE_MARINE', marineId: marine.id, field: 'conditionPhysique', value: conditionPhysique });
-    }
-    if (etatPsychologique !== marine.etatPsychologique) {
-      dispatch({ type: 'UPDATE_MARINE', marineId: marine.id, field: 'etatPsychologique', value: etatPsychologique });
-    }
-
     const nextDateDebut = showConvalescenceFields && dateDebutIndispo ? dateDebutIndispo : undefined;
-    if (nextDateDebut !== marine.dateDebutIndispo) {
-      dispatch({ type: 'UPDATE_MARINE', marineId: marine.id, field: 'dateDebutIndispo', value: nextDateDebut });
-    }
-
     const parsedDuree = dureeJours === '' ? undefined : Number(dureeJours);
     const nextDuree = showConvalescenceFields && parsedDuree !== undefined && !isNaN(parsedDuree) && parsedDuree >= 0 ? parsedDuree : undefined;
-    if (nextDuree !== marine.dureeJours) {
-      dispatch({ type: 'UPDATE_MARINE', marineId: marine.id, field: 'dureeJours', value: nextDuree });
-    }
+
+    dispatch({
+      type: 'UPDATE_MARINE_FIELDS',
+      marineId: marine.id,
+      reason: 'health',
+      fields: {
+        conditionPhysique,
+        etatPsychologique,
+        dateDebutIndispo: nextDateDebut,
+        dureeJours: nextDuree,
+      },
+    });
 
     onClose();
   };

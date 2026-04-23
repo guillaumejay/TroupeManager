@@ -38,15 +38,16 @@ export function EditSheetModal({ marine, onClose }: EditSheetModalProps) {
     const trimmedNom = nom.trim();
     if (!trimmedNom) return;
 
-    if (trimmedNom !== marine.nom) {
-      dispatch({ type: 'UPDATE_MARINE', marineId: marine.id, field: 'nom', value: trimmedNom });
-    }
-    if (grade !== marine.grade) {
-      dispatch({ type: 'UPDATE_MARINE', marineId: marine.id, field: 'grade', value: grade });
-    }
-    if (specialisation !== marine.specialisation) {
-      dispatch({ type: 'UPDATE_MARINE', marineId: marine.id, field: 'specialisation', value: specialisation });
-    }
+    dispatch({
+      type: 'UPDATE_MARINE_FIELDS',
+      marineId: marine.id,
+      reason: 'sheet',
+      fields: {
+        nom: trimmedNom,
+        grade,
+        specialisation,
+      },
+    });
 
     onClose();
   };

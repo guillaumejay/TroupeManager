@@ -15,8 +15,8 @@ describe('formatRosterText', () => {
 
   it('shows convalescent marines with remaining days', () => {
     const text = formatRosterText(INITIAL_MARINES, INITIAL_DATE);
-    // Crash Test: 51 days from 2186-03-04, current 2186-03-05 → 50j
-    expect(text).toContain('Crash Test (2nd, Fusilier) — Physique: [Convalescence] — 50j restants');
+    // Crash Test: 5 days from 2186-03-04, current 2186-03-05 → 4j
+    expect(text).toContain('Crash Test (2nd, Fusilier) — Physique: [Convalescence] — 4j restants');
   });
 
   it('shows healthy marines with [RAS]', () => {

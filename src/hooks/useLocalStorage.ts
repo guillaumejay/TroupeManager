@@ -13,7 +13,11 @@ export function loadState(): CampaignState {
       console.warn('[TroupeManager] Corrupted localStorage — falling back to initial state');
       return INITIAL_STATE;
     }
-    return { ...parsed, highlightedMarineIds: parsed.highlightedMarineIds ?? [] };
+    return {
+      ...parsed,
+      highlightedMarineIds: parsed.highlightedMarineIds ?? [],
+      events: parsed.events ?? [],
+    };
   } catch (e) {
     console.warn('[TroupeManager] Failed to parse localStorage — falling back to initial state', e);
     return INITIAL_STATE;

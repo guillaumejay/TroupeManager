@@ -8,9 +8,10 @@ import { copyRosterToClipboard } from './utils/export';
 import { RosterTable } from './components/roster/RosterTable';
 import { AddMarineModal } from './components/roster/AddMarineModal';
 import { TimelineView } from './components/timeline/TimelineView';
+import { EventsView } from './components/events/EventsView';
 import { SettingsView } from './components/settings/SettingsView';
 
-type Tab = 'roster' | 'timeline' | 'settings';
+type Tab = 'roster' | 'timeline' | 'events' | 'settings';
 
 const SYNC_META: Record<Exclude<SyncStatus, 'idle'>, { label: string; dotClass: string }> = {
   saving: { label: 'Sauvegarde', dotClass: 'bg-amber-400 animate-pulse' },
@@ -88,6 +89,16 @@ function AppContent() {
           Timeline
         </button>
         <button
+          onClick={() => setActiveTab('events')}
+          className={`px-4 py-2 text-sm font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60 focus-visible:rounded ${
+            activeTab === 'events'
+              ? 'text-amber-400 border-b-2 border-amber-400'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Events
+        </button>
+        <button
           onClick={() => setActiveTab('settings')}
           className={`ml-auto px-4 py-2 text-sm font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60 focus-visible:rounded ${
             activeTab === 'settings'
@@ -122,6 +133,7 @@ function AppContent() {
           </div>
         )}
         {activeTab === 'timeline' && <TimelineView />}
+        {activeTab === 'events' && <EventsView />}
         {activeTab === 'settings' && <SettingsView />}
       </main>
     </div>

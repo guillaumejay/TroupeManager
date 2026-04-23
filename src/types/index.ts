@@ -47,15 +47,35 @@ export interface Scenario {
   blesses: BlesseInfo[];
 }
 
+export type MarineUpdateReason = 'sheet' | 'health';
+
+export type EventType =
+  | 'marine-added'
+  | 'marine-updated'
+  | 'marine-sheet-updated'
+  | 'marine-health-updated'
+  | 'scenario-added'
+  | 'day-advanced';
+
+export interface CampaignEvent {
+  id: string;
+  timestamp: string; // ISO 8601 real-world time
+  dateCampagne: string; // campaign date when the event occurred
+  type: EventType;
+  label: string; // human-readable summary, pre-formatted
+}
+
 export interface CampaignState {
   marines: Marine[];
   scenarios: Scenario[];
   dateCourante: string; // "YYYY-MM-DD"
   highlightedMarineIds: string[];
+  events: CampaignEvent[];
 }
 
 export type CampaignAction =
   | { type: 'UPDATE_MARINE'; marineId: string; field: keyof Marine; value: Marine[keyof Marine] }
+  | { type: 'UPDATE_MARINE_FIELDS'; marineId: string; fields: Partial<Marine>; reason: MarineUpdateReason }
   | { type: 'ADD_MARINE'; marine: Marine }
   | { type: 'ADVANCE_DAY' }
   | { type: 'ADD_SCENARIO'; scenario: Scenario; marineUpdates: MarineUpdate[] }

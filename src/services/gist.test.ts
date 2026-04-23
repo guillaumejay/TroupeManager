@@ -16,6 +16,7 @@ const validState: CampaignState = {
   scenarios: [],
   dateCourante: '2186-03-10',
   highlightedMarineIds: [],
+  events: [],
 };
 
 interface MockResponseInit {

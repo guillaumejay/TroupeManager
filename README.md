@@ -1,73 +1,79 @@
-# React + TypeScript + Vite
+# TroupeManager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Campaign tool for the **Aliens RPG** (Free League). A GM tracks a squad of Colonial Marines across scenarios: physical and mental condition, convalescences, casualties and injuries.
 
-Currently, two official plugins are available:
+No backend — everything lives in the browser's localStorage, with optional synchronization through a **GitHub Gist** to share campaign state with players in read-only mode.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What it does
 
-## React Compiler
+- **Live roster** — each marine has a character sheet (name, rank, specialty) and a health state (physical condition, mental state, ongoing convalescence).
+- **Timeline** — each played scenario appears as a chronological marker with its dead and wounded. Clicking a scenario highlights the involved marines in the roster.
+- **Auto convalescence** — enter `start date + duration` and the tool shows remaining days, recomputed every time the campaign date is advanced with `+1 day`.
+- **Events log** — every modification (sheet, health, new marine, new scenario, day advance) is journaled in a human-readable history.
+- **Export** — the roster can be copied as formatted text to the clipboard (session recap).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting started
 
-## Expanding the ESLint configuration
+Requirements: Node 20+ and pnpm.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install
+pnpm dev          # Vite dev server
+pnpm build        # typecheck + production bundle
+pnpm lint         # ESLint
+pnpm exec vitest  # tests
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## How it works
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Screens
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Roster** — editable table. Each row has inline cell-by-cell editing *and* two modals: **Sheet** (card icon) for identity, **Health** (heart icon) for physical condition, mental state and convalescence. The Health modal pre-fills the convalescence start date with the current campaign date.
+- **Timeline** — chronological strip of scenarios. A form adds a scenario with dead and wounded; involved marines are updated in a batch.
+- **Events** — reverse-chronological log of modifications. Labels are pre-computed (e.g. *"Windtalker — Health updated: Physical condition OK → Serious wound, Indispo start — → 23 April 2026"*), with a color-coded dot per type.
+- **Settings** — reset and Gist sharing configuration.
+
+### Gist sharing
+
+- **GM** — enters a GitHub Personal Access Token (scope `gist`) in Settings → a secret Gist is created and a `?gist=<id>` URL is generated.
+- **Players** — open the shared URL → read-only access, polled every 30 s while the tab is focused.
+- **Strategy** — last-write-wins. No merge; the GM is the only writer. The token is stored in plaintext in the GM's browser `localStorage`.
+
+### Persistence
+
+- `localStorage` (`troupe-manager-state`) is always used, no backend required.
+- When a Gist is configured, state (marines, scenarios, current date, events) is pushed after a 2 s debounce. Transient UI fields (`highlightedMarineIds`) are excluded from persistence.
+
+## Stack
+
+React 19 · TypeScript 6 · Vite 8 · Tailwind CSS 4 · Vitest 4. No router — tab navigation is plain `useState` in `App.tsx`. Global state: Context + `useReducer`.
+
+## Architecture at a glance
+
 ```
+src/
+  types/               Marine, Scenario, CampaignEvent, CampaignAction (discriminated union)
+  data/initialState.ts Starting roster and scenarios
+  context/             CampaignContext + campaignReducer (single source of mutations)
+  hooks/               useLocalStorage (persistence), useGistSync (remote sync)
+  services/gist.ts     fetch wrapper around the GitHub Gist API
+  utils/               dates (UTC, FR formatting), events (label formatting), export (clipboard)
+  components/
+    roster/            RosterTable, RosterRow, EditSheetModal, EditHealthModal, AddMarineModal, InlineEdit, StatusBadge
+    timeline/          TimelineView, ScenarioMarker, AddScenarioForm
+    events/            EventsView
+    settings/          SettingsView, GistSettings
+```
+
+Every action goes through the reducer, which emits events in the same place — this is what guarantees no modification escapes the history.
+
+## Domain language
+
+The original spec and domain terminology are in **French** (see `documentation/spec-initiale.md`). Code identifiers (types, fields, actions) are in English *except* when they mirror domain terms: `conditionPhysique`, `etatPsychologique`, `dateDebutIndispo`, `dureeJours`, `specialisation`. UI text is in French.
+
+## Known limitations
+
+- No merge conflict handling: if two GMs write concurrently, the last save wins.
+- The GitHub token is stored in plaintext in `localStorage` — acceptable for a personal tool, not for a shared deployment.
+- No deletion of marines or scenarios (only addition and edition).
+- Event log is not prunable from the UI. For a long campaign it grows linearly.

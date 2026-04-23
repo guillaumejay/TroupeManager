@@ -43,6 +43,7 @@ function serializePersistent(state: CampaignState): string {
     marines: state.marines,
     scenarios: state.scenarios,
     dateCourante: state.dateCourante,
+    events: state.events,
   });
 }
 
