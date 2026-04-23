@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { useCampaign } from '../../context/CampaignContext';
 import { ScenarioMarker } from './ScenarioMarker';
 import { AddScenarioForm } from '../scenario/AddScenarioForm';
+import { EditScenarioModal } from '../scenario/EditScenarioModal';
 
 export function TimelineView() {
   const { state, view, dispatch } = useCampaign();
   const { scenarios, marines } = view;
   const { highlightedMarineIds } = state;
+  const [editingScenarioId, setEditingScenarioId] = useState<string | null>(null);
+  const editingScenario = scenarios.find((s) => s.id === editingScenarioId) ?? null;
 
   const getMarineName = (id: string) => marines.find((m) => m.id === id)?.nom ?? id;
 
@@ -13,10 +17,13 @@ export function TimelineView() {
     const scenario = scenarios.find((s) => s.id === scenarioId);
     if (!scenario) return;
 
-    const involvedIds = [
-      ...scenario.morts,
-      ...scenario.blesses.map((b) => b.marineId),
-    ];
+    const involvedIds = Array.from(
+      new Set<string>([
+        ...scenario.participants,
+        ...scenario.morts,
+        ...scenario.blesses.map((b) => b.marineId),
+      ]),
+    );
 
     // Toggle: if same scenario is clicked again, clear highlight
     const alreadyHighlighted = involvedIds.length > 0 &&
@@ -41,10 +48,14 @@ export function TimelineView() {
               scenario={scenario}
               getMarineName={getMarineName}
               onClick={() => handleScenarioClick(scenario.id)}
+              onEdit={() => setEditingScenarioId(scenario.id)}
               isActive={
                 highlightedMarineIds.length > 0 &&
-                [...scenario.morts, ...scenario.blesses.map((b) => b.marineId)]
-                  .some((id) => highlightedMarineIds.includes(id))
+                [
+                  ...scenario.participants,
+                  ...scenario.morts,
+                  ...scenario.blesses.map((b) => b.marineId),
+                ].some((id) => highlightedMarineIds.includes(id))
               }
               isFirst={index === 0}
             />
@@ -58,6 +69,13 @@ export function TimelineView() {
 
       {/* Add scenario form */}
       <AddScenarioForm />
+
+      {editingScenario && (
+        <EditScenarioModal
+          scenario={editingScenario}
+          onClose={() => setEditingScenarioId(null)}
+        />
+      )}
     </div>
   );
 }

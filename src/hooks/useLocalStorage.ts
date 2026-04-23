@@ -1,5 +1,6 @@
 import type { CampaignState } from '../types';
 import { INITIAL_STATE } from '../data/initialState';
+import { migrateEvents } from '../utils/migration';
 
 const STORAGE_KEY = 'troupe-manager-state';
 
@@ -24,6 +25,7 @@ export function loadState(): CampaignState {
     }
     return {
       ...parsed,
+      events: migrateEvents(parsed.events),
       highlightedMarineIds: parsed.highlightedMarineIds ?? [],
     };
   } catch (e) {
@@ -34,9 +36,8 @@ export function loadState(): CampaignState {
 
 export function saveState(state: CampaignState): void {
   try {
-    // Don't persist transient UI state
-    const { highlightedMarineIds: _, ...persisted } = state;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...persisted, highlightedMarineIds: [] }));
+    // Don't persist transient UI state (highlightedMarineIds)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, highlightedMarineIds: [] }));
   } catch (e) {
     console.warn('[TroupeManager] Failed to save to localStorage', e);
   }

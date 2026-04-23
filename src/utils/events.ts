@@ -1,5 +1,64 @@
-import type { DomainEvent, Marine } from '../types';
+import type { ConditionPhysique, DomainEvent, Marine, MarineUpdate, Scenario } from '../types';
+import { CONDITION_PHYSIQUE, ETAT_PSYCHOLOGIQUE } from '../data/domain';
 import { formatDateDisplay } from './dates';
+
+export const WOUND_SEVERITIES: readonly ConditionPhysique[] = [
+  CONDITION_PHYSIQUE.BLESSURE_LEGERE,
+  CONDITION_PHYSIQUE.BLESSURE_GRAVE,
+  CONDITION_PHYSIQUE.CONVALESCENCE,
+];
+
+export const DEFAULT_WOUND_SEVERITY: ConditionPhysique = CONDITION_PHYSIQUE.BLESSURE_GRAVE;
+
+const DEFAULT_DAYS_BY_SEVERITY: Record<ConditionPhysique, number> = {
+  [CONDITION_PHYSIQUE.RAS]: 0,
+  [CONDITION_PHYSIQUE.BLESSURE_LEGERE]: 3,
+  [CONDITION_PHYSIQUE.BLESSURE_GRAVE]: 15,
+  [CONDITION_PHYSIQUE.CONVALESCENCE]: 30,
+  [CONDITION_PHYSIQUE.MORT]: 0,
+};
+
+export function severityFromDetails(details: string): ConditionPhysique {
+  return (WOUND_SEVERITIES as readonly string[]).includes(details)
+    ? (details as ConditionPhysique)
+    : DEFAULT_WOUND_SEVERITY;
+}
+
+export function buildMarineUpdates(
+  scenario: Scenario,
+  marines: Marine[],
+  previousUpdates?: MarineUpdate[],
+): MarineUpdate[] {
+  const prev = new Map((previousUpdates ?? []).map((u) => [u.marineId, u] as const));
+  const updates: MarineUpdate[] = [];
+
+  for (const id of scenario.morts) {
+    updates.push({
+      marineId: id,
+      conditionPhysique: CONDITION_PHYSIQUE.MORT,
+      etatPsychologique: ETAT_PSYCHOLOGIQUE.MORT,
+      dateDebutIndispo: scenario.date,
+      scenarioMort: scenario.id,
+    });
+  }
+
+  for (const b of scenario.blesses) {
+    const previous = prev.get(b.marineId);
+    const marine = marines.find((m) => m.id === b.marineId);
+    const severity = severityFromDetails(b.details);
+    updates.push({
+      marineId: b.marineId,
+      conditionPhysique: severity,
+      etatPsychologique:
+        previous?.etatPsychologique ?? marine?.etatPsychologique ?? ETAT_PSYCHOLOGIQUE.RAS,
+      dateDebutIndispo: scenario.date,
+      dureeJours: previous?.dureeJours ?? DEFAULT_DAYS_BY_SEVERITY[severity],
+      scenarioOrigine: scenario.id,
+    });
+  }
+
+  return updates;
+}
 
 const FIELD_LABELS: Partial<Record<keyof Marine, string>> = {
   nom: 'Nom',
@@ -10,6 +69,7 @@ const FIELD_LABELS: Partial<Record<keyof Marine, string>> = {
   dateDebutIndispo: 'Début indispo',
   dureeJours: 'Durée',
   scenarioMort: 'Scénario de mort',
+  scenarioOrigine: 'Scénario d’origine',
 };
 
 const REASON_HEADING = { sheet: 'Fiche modifiée', health: 'Santé modifiée' } as const;
@@ -47,6 +107,7 @@ function applyEventToMarines(marines: Map<string, Marine>, event: DomainEvent): 
           dateDebutIndispo: u.dateDebutIndispo ?? m.dateDebutIndispo,
           dureeJours: u.dureeJours ?? m.dureeJours,
           scenarioMort: u.scenarioMort ?? m.scenarioMort,
+          scenarioOrigine: u.scenarioOrigine ?? m.scenarioOrigine,
         });
       }
       return;

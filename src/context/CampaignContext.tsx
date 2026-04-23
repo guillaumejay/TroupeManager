@@ -36,6 +36,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCampaign(): CampaignContextValue {
   const ctx = useContext(CampaignContext);
   if (!ctx) {

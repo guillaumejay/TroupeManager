@@ -32,6 +32,7 @@ export interface Marine {
   dateDebutIndispo?: string; // "YYYY-MM-DD"
   dureeJours?: number; // undefined for "Définitive"
   scenarioMort?: string; // scenario id
+  scenarioOrigine?: string; // scenario id — origine de la blessure/convalescence courante
 }
 
 export interface BlesseInfo {
@@ -43,8 +44,9 @@ export interface Scenario {
   id: string;
   nom: string;
   date: string; // "YYYY-MM-DD"
-  morts: string[]; // marine ids
-  blesses: BlesseInfo[];
+  participants: string[]; // marine ids — qui est parti en mission (morts/blessés compris)
+  morts: string[]; // marine ids (⊆ participants)
+  blesses: BlesseInfo[]; // marineId ⊆ participants
 }
 
 export type MarineUpdateReason = 'sheet' | 'health';
@@ -56,6 +58,7 @@ export interface MarineUpdate {
   dateDebutIndispo?: string;
   dureeJours?: number;
   scenarioMort?: string;
+  scenarioOrigine?: string;
 }
 
 interface DomainEventBase {
@@ -104,6 +107,7 @@ export type CampaignAction =
   | { type: 'ADD_MARINE'; marine: Marine }
   | { type: 'ADVANCE_DAY' }
   | { type: 'ADD_SCENARIO'; scenario: Scenario; marineUpdates: MarineUpdate[] }
+  | { type: 'UPDATE_SCENARIO'; scenarioId: string; scenario: Scenario; marineUpdates: MarineUpdate[] }
   | { type: 'SET_OBSERVATION_DATE'; date: string }
   | { type: 'SHIFT_OBSERVATION_DATE'; days: number }
   | { type: 'REWIND_TO_OBSERVATION' }

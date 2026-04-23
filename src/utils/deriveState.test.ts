@@ -82,6 +82,7 @@ describe('deriveView', () => {
           id: 's1',
           nom: 'Test',
           date: '2186-03-03',
+          participants: ['m1', 'm2'],
           morts: ['m1'],
           blesses: [{ marineId: 'm2', details: 'grave' }],
         },
@@ -99,6 +100,31 @@ describe('deriveView', () => {
     expect(viewAfter.marines.find((m) => m.id === 'm1')!.conditionPhysique).toBe('MORT');
     expect(viewAfter.marines.find((m) => m.id === 'm2')!.dureeJours).toBe(5);
     expect(viewAfter.scenarios).toHaveLength(1);
+  });
+
+  it('propagates scenarioOrigine from scenario-added updates', () => {
+    const events: DomainEvent[] = [
+      marineAdded('m1', '2186-03-01', '2186-03-01T00:00:00Z'),
+      {
+        id: 'scn-s1',
+        timestamp: '2186-03-03T12:00:00Z',
+        dateCampagne: '2186-03-03',
+        type: 'scenario-added',
+        scenario: {
+          id: 's1',
+          nom: 'Test',
+          date: '2186-03-03',
+          participants: ['m1'],
+          morts: [],
+          blesses: [{ marineId: 'm1', details: 'grave' }],
+        },
+        marineUpdates: [
+          { marineId: 'm1', conditionPhysique: 'Convalescence', etatPsychologique: 'RAS', dateDebutIndispo: '2186-03-03', dureeJours: 10, scenarioOrigine: 's1' },
+        ],
+      },
+    ];
+    const view = deriveView(events, '2186-03-05');
+    expect(view.marines.find((m) => m.id === 'm1')!.scenarioOrigine).toBe('s1');
   });
 
   it('ignores updates targeting an unknown marine', () => {

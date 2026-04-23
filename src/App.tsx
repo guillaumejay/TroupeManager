@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CampaignProvider, useCampaign } from './context/CampaignContext';
 import { GistSyncProvider } from './context/GistSyncProvider';
 import { useGistSyncContext } from './context/gistSyncContext';
@@ -40,22 +40,25 @@ const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function DateNav() {
   const { state, dispatch } = useCampaign();
-  const [confirmRewind, setConfirmRewind] = useState(false);
+  // `confirmRewindFor` tracks the date the user asked to confirm. Deriving
+  // the visible confirm state from it avoids a setState-in-effect reset.
+  const [confirmRewindFor, setConfirmRewindFor] = useState<string | null>(null);
   const [draftDate, setDraftDate] = useState(state.dateObservation);
+  const [lastSyncedObsDate, setLastSyncedObsDate] = useState(state.dateObservation);
   const isPast = state.dateObservation < state.dateCourante;
+  const confirmRewind = isPast && confirmRewindFor === state.dateObservation;
 
   const futureEventCount = isPast
     ? state.events.filter((e) => e.dateCampagne > state.dateObservation).length
     : 0;
 
-  useEffect(() => {
-    if (!isPast) setConfirmRewind(false);
-  }, [isPast]);
-
   // Keep draft in sync with external changes (◀ ▶ button, rewind, advance).
-  useEffect(() => {
+  // React recommends updating state during render when derived from external
+  // changes rather than running a setState inside useEffect.
+  if (lastSyncedObsDate !== state.dateObservation) {
+    setLastSyncedObsDate(state.dateObservation);
     setDraftDate(state.dateObservation);
-  }, [state.dateObservation]);
+  }
 
   const commitDraft = () => {
     if (ISO_DATE_RE.test(draftDate)) {
@@ -120,7 +123,7 @@ function DateNav() {
                   : `Replacer le présent au ${state.dateObservation} ?`}
               </span>
               <button
-                onClick={() => { dispatch({ type: 'REWIND_TO_OBSERVATION' }); setConfirmRewind(false); }}
+                onClick={() => { dispatch({ type: 'REWIND_TO_OBSERVATION' }); setConfirmRewindFor(null); }}
                 className={`px-2 py-0.5 text-white rounded cursor-pointer ${
                   futureEventCount > 0 ? 'bg-red-700 hover:bg-red-600' : 'bg-amber-700 hover:bg-amber-600'
                 }`}
@@ -128,7 +131,7 @@ function DateNav() {
                 Oui
               </button>
               <button
-                onClick={() => setConfirmRewind(false)}
+                onClick={() => setConfirmRewindFor(null)}
                 className="px-2 py-0.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded cursor-pointer"
               >
                 Non
@@ -136,7 +139,7 @@ function DateNav() {
             </div>
           ) : (
             <button
-              onClick={() => setConfirmRewind(true)}
+              onClick={() => setConfirmRewindFor(state.dateObservation)}
               className={`px-2 py-1 text-xs border rounded transition-colors cursor-pointer ${
                 futureEventCount > 0
                   ? 'text-red-300 border-red-500/40 hover:bg-red-900/20'

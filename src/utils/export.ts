@@ -11,7 +11,7 @@ export function formatRosterText(marines: Marine[], dateCourante: string): strin
     const remaining = joursRestants(m.dateDebutIndispo, m.dureeJours, dateCourante);
     const isDead = m.conditionPhysique === CONDITION_PHYSIQUE.MORT;
 
-    let status = '';
+    let status: string;
     if (isDead) {
       status = `[MORT] — Scénario: ${m.scenarioMort ?? '?'}`;
     } else if (remaining !== null && remaining <= 0) {

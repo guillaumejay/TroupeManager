@@ -1,4 +1,5 @@
 import type { CampaignState } from "../types";
+import { migrateEvents } from "../utils/migration";
 
 const GIST_API = "https://api.github.com/gists";
 const FILENAME = "troupe-manager.json";
@@ -77,6 +78,7 @@ function parseGistContent(gist: GistResponse): CampaignState {
 	}
 	return {
 		...parsed,
+		events: migrateEvents(parsed.events),
 		highlightedMarineIds: parsed.highlightedMarineIds ?? [],
 	};
 }

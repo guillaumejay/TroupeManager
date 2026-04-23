@@ -78,6 +78,30 @@ export function campaignReducer(state: CampaignState, action: CampaignAction): C
       };
     }
 
+    case 'UPDATE_SCENARIO': {
+      const found = state.events.some(
+        (e) => e.type === 'scenario-added' && e.scenario.id === action.scenarioId,
+      );
+      if (!found) return state;
+      const nextEvents = state.events.map((e) =>
+        e.type === 'scenario-added' && e.scenario.id === action.scenarioId
+          ? {
+              ...e,
+              dateCampagne: action.scenario.date,
+              scenario: action.scenario,
+              marineUpdates: action.marineUpdates,
+            }
+          : e,
+      );
+      const nextDateCourante =
+        action.scenario.date > state.dateCourante ? action.scenario.date : state.dateCourante;
+      return {
+        ...state,
+        events: sortEvents(nextEvents),
+        dateCourante: nextDateCourante,
+      };
+    }
+
     case 'SET_OBSERVATION_DATE': {
       const clamped = action.date > state.dateCourante ? state.dateCourante : action.date;
       return { ...state, dateObservation: clamped };

@@ -14,11 +14,14 @@ interface RosterRowProps {
 }
 
 export function RosterRow({ marine, isHighlighted }: RosterRowProps) {
-  const { state, dispatch } = useCampaign();
+  const { state, view, dispatch } = useCampaign();
   const [editing, setEditing] = useState<'sheet' | 'health' | null>(null);
   const isDead = marine.conditionPhysique === CONDITION_PHYSIQUE.MORT;
   const isConvalescent = marine.conditionPhysique === CONDITION_PHYSIQUE.CONVALESCENCE;
   const remaining = joursRestants(marine.dateDebutIndispo, marine.dureeJours, state.dateObservation);
+  const origineScenario = marine.scenarioOrigine
+    ? view.scenarios.find((s) => s.id === marine.scenarioOrigine)
+    : undefined;
 
   const update = (field: keyof Marine, value: Marine[keyof Marine]) => {
     dispatch({ type: 'UPDATE_MARINE', marineId: marine.id, field, value });
@@ -64,7 +67,14 @@ export function RosterRow({ marine, isHighlighted }: RosterRowProps) {
           />
         </td>
         <td className="px-3 py-2 whitespace-nowrap">
-          <StatusBadge value={marine.conditionPhysique} type="condition" />
+          <div className="flex flex-col gap-0.5">
+            <StatusBadge value={marine.conditionPhysique} type="condition" />
+            {origineScenario && !isDead && (
+              <span className="text-[11px] text-gray-500 italic">
+                Origine : {origineScenario.nom}
+              </span>
+            )}
+          </div>
         </td>
         <td className="px-3 py-2 whitespace-nowrap">
           {isDead ? (

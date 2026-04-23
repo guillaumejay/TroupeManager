@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useCampaign } from '../../context/CampaignContext';
 import { INITIAL_STATE } from '../../data/initialState';
 import { isCampaignState } from '../../services/gist';
+import { migrateEvents } from '../../utils/migration';
 import { GistSettings } from './GistSettings';
 
 declare const __APP_VERSION__: string;
@@ -62,7 +63,11 @@ export function SettingsView() {
       }
       dispatch({
         type: 'LOAD_STATE',
-        state: { ...parsed, highlightedMarineIds: parsed.highlightedMarineIds ?? [] },
+        state: {
+          ...parsed,
+          events: migrateEvents(parsed.events),
+          highlightedMarineIds: parsed.highlightedMarineIds ?? [],
+        },
       });
       setImportError(null);
       setImportDone(true);

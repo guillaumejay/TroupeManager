@@ -39,6 +39,7 @@ const SEED_SCENARIOS: SeedScenario[] = [
       id: 's01',
       nom: 'Pioneer Station',
       date: '2186-03-03',
+      participants: ['m16', 'm15', 'm09', 'm10', 'm08'],
       morts: ['m16', 'm15'],
       blesses: [
         { marineId: 'm09', details: CONDITION_PHYSIQUE.BLESSURE_GRAVE },
@@ -59,6 +60,7 @@ const SEED_SCENARIOS: SeedScenario[] = [
       id: 's02',
       nom: 'Dead Hills',
       date: '2186-03-04',
+      participants: ['m14', 'm05'],
       morts: ['m14'],
       blesses: [{ marineId: 'm05', details: CONDITION_PHYSIQUE.BLESSURE_GRAVE }],
     },
@@ -72,6 +74,7 @@ const SEED_SCENARIOS: SeedScenario[] = [
       id: 's03',
       nom: "Berkeley's Docks",
       date: '2186-03-05',
+      participants: ['m07', 'm13'],
       morts: ['m07'],
       blesses: [{ marineId: 'm13', details: CONDITION_PHYSIQUE.BLESSURE_LEGERE }],
     },

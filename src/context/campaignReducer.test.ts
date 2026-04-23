@@ -91,6 +91,7 @@ describe('campaignReducer', () => {
         id: 's01',
         nom: 'Test',
         date: '2186-03-04',
+        participants: ['m01', 'm02'],
         morts: ['m01'],
         blesses: [{ marineId: 'm02', details: 'grave' }],
       };
@@ -109,7 +110,7 @@ describe('campaignReducer', () => {
       const s = baseState({ dateCourante: '2186-03-05' });
       const next = campaignReducer(s, {
         type: 'ADD_SCENARIO',
-        scenario: { id: 's01', nom: 'X', date: '2186-03-10', morts: [], blesses: [] },
+        scenario: { id: 's01', nom: 'X', date: '2186-03-10', participants: [], morts: [], blesses: [] },
         marineUpdates: [],
       });
       expect(next.dateCourante).toBe('2186-03-10');
@@ -119,10 +120,131 @@ describe('campaignReducer', () => {
       const s = baseState({ dateCourante: '2186-03-05' });
       const next = campaignReducer(s, {
         type: 'ADD_SCENARIO',
-        scenario: { id: 's01', nom: 'X', date: '2186-03-02', morts: [], blesses: [] },
+        scenario: { id: 's01', nom: 'X', date: '2186-03-02', participants: [], morts: [], blesses: [] },
         marineUpdates: [],
       });
       expect(next.dateCourante).toBe('2186-03-05');
+    });
+  });
+
+  describe('UPDATE_SCENARIO', () => {
+    function seededWithScenario() {
+      let s = baseState({ dateObservation: '2186-03-01', dateCourante: '2186-03-05' });
+      s = seedMarine(s, 'm01');
+      s = seedMarine(s, 'm02');
+      s = seedMarine(s, 'm03');
+      s = campaignReducer(s, { type: 'SET_OBSERVATION_DATE', date: '2186-03-04' });
+      const scenario: Scenario = {
+        id: 's01',
+        nom: 'Hadley',
+        date: '2186-03-04',
+        participants: ['m01', 'm02'],
+        morts: ['m01'],
+        blesses: [{ marineId: 'm02', details: 'grave' }],
+      };
+      const updates: MarineUpdate[] = [
+        { marineId: 'm01', conditionPhysique: 'MORT', etatPsychologique: 'MORT', dateDebutIndispo: '2186-03-04', scenarioMort: 's01' },
+        { marineId: 'm02', conditionPhysique: 'Convalescence', etatPsychologique: 'RAS', dateDebutIndispo: '2186-03-04', dureeJours: 7, scenarioOrigine: 's01' },
+      ];
+      s = campaignReducer(s, { type: 'ADD_SCENARIO', scenario, marineUpdates: updates });
+      return s;
+    }
+
+    it('replaces the scenario-added event in place, preserving other events', () => {
+      let s = seededWithScenario();
+      const otherEventsBefore = s.events.filter((e) => e.type !== 'scenario-added');
+      s = campaignReducer(s, {
+        type: 'UPDATE_SCENARIO',
+        scenarioId: 's01',
+        scenario: {
+          id: 's01',
+          nom: 'Hadley (updated)',
+          date: '2186-03-04',
+          participants: ['m01', 'm02', 'm03'],
+          morts: ['m01'],
+          blesses: [
+            { marineId: 'm02', details: 'grave' },
+            { marineId: 'm03', details: 'légère' },
+          ],
+        },
+        marineUpdates: [
+          { marineId: 'm01', conditionPhysique: 'MORT', etatPsychologique: 'MORT', dateDebutIndispo: '2186-03-04', scenarioMort: 's01' },
+          { marineId: 'm02', conditionPhysique: 'Convalescence', etatPsychologique: 'RAS', dateDebutIndispo: '2186-03-04', dureeJours: 7, scenarioOrigine: 's01' },
+          { marineId: 'm03', conditionPhysique: 'Convalescence', etatPsychologique: 'RAS', dateDebutIndispo: '2186-03-04', dureeJours: 10, scenarioOrigine: 's01' },
+        ],
+      });
+      const scenarioEvents = s.events.filter((e) => e.type === 'scenario-added');
+      expect(scenarioEvents).toHaveLength(1);
+      expect(scenarioEvents[0].type).toBe('scenario-added');
+      if (scenarioEvents[0].type === 'scenario-added') {
+        expect(scenarioEvents[0].scenario.nom).toBe('Hadley (updated)');
+        expect(scenarioEvents[0].scenario.blesses).toHaveLength(2);
+      }
+      // Other events preserved
+      const otherEventsAfter = s.events.filter((e) => e.type !== 'scenario-added');
+      expect(otherEventsAfter).toEqual(otherEventsBefore);
+      const view = deriveView(s.events, '2186-03-05');
+      expect(view.marines.find((m) => m.id === 'm03')!.conditionPhysique).toBe('Convalescence');
+    });
+
+    it('updates dateCampagne on the event when scenario date changes and re-sorts', () => {
+      let s = seededWithScenario();
+      s = campaignReducer(s, {
+        type: 'UPDATE_SCENARIO',
+        scenarioId: 's01',
+        scenario: { id: 's01', nom: 'Hadley', date: '2186-03-02', participants: [], morts: [], blesses: [] },
+        marineUpdates: [],
+      });
+      const scnEvt = s.events.find((e) => e.type === 'scenario-added');
+      expect(scnEvt?.dateCampagne).toBe('2186-03-02');
+    });
+
+    it('bumps dateCourante forward when scenario moves later, never backward', () => {
+      let s = seededWithScenario();
+      const before = s.dateCourante;
+      // Move earlier: dateCourante should not regress.
+      s = campaignReducer(s, {
+        type: 'UPDATE_SCENARIO',
+        scenarioId: 's01',
+        scenario: { id: 's01', nom: 'Hadley', date: '2186-03-02', participants: [], morts: [], blesses: [] },
+        marineUpdates: [],
+      });
+      expect(s.dateCourante).toBe(before);
+      // Move later: bump.
+      s = campaignReducer(s, {
+        type: 'UPDATE_SCENARIO',
+        scenarioId: 's01',
+        scenario: { id: 's01', nom: 'Hadley', date: '2186-04-01', participants: [], morts: [], blesses: [] },
+        marineUpdates: [],
+      });
+      expect(s.dateCourante).toBe('2186-04-01');
+    });
+
+    it('is a no-op when scenarioId is unknown', () => {
+      const s = seededWithScenario();
+      const next = campaignReducer(s, {
+        type: 'UPDATE_SCENARIO',
+        scenarioId: 'ghost',
+        scenario: { id: 'ghost', nom: 'Ghost', date: '2186-03-04', participants: [], morts: [], blesses: [] },
+        marineUpdates: [],
+      });
+      expect(next).toBe(s);
+    });
+
+    it('resurrects a marine when removed from morts', () => {
+      let s = seededWithScenario();
+      // Confirm m01 is dead.
+      expect(deriveView(s.events, s.dateObservation).marines.find((m) => m.id === 'm01')!.conditionPhysique).toBe('MORT');
+      s = campaignReducer(s, {
+        type: 'UPDATE_SCENARIO',
+        scenarioId: 's01',
+        scenario: { id: 's01', nom: 'Hadley', date: '2186-03-04', participants: ['m02'], morts: [], blesses: [{ marineId: 'm02', details: 'grave' }] },
+        marineUpdates: [
+          { marineId: 'm02', conditionPhysique: 'Convalescence', etatPsychologique: 'RAS', dateDebutIndispo: '2186-03-04', dureeJours: 7, scenarioOrigine: 's01' },
+        ],
+      });
+      const view = deriveView(s.events, s.dateObservation);
+      expect(view.marines.find((m) => m.id === 'm01')!.conditionPhysique).toBe('RAS');
     });
   });
 

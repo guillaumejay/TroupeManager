@@ -46,6 +46,7 @@ export function deriveView(events: DomainEvent[], upToDate: string): DerivedView
             dateDebutIndispo: u.dateDebutIndispo ?? m.dateDebutIndispo,
             dureeJours: u.dureeJours ?? m.dureeJours,
             scenarioMort: u.scenarioMort ?? m.scenarioMort,
+            scenarioOrigine: u.scenarioOrigine ?? m.scenarioOrigine,
           });
         }
         break;
