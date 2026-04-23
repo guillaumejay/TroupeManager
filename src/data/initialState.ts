@@ -1,4 +1,5 @@
 import type { Marine, Scenario, MarineUpdate, DomainEvent, CampaignState } from '../types';
+import { GRADE, SPECIALISATION, CONDITION_PHYSIQUE, ETAT_PSYCHOLOGIQUE } from './domain';
 
 const START_DATE = '2186-03-01';
 export const INITIAL_DATE = START_DATE;
@@ -9,22 +10,22 @@ export const INITIAL_DATE = START_DATE;
 // by replaying events, which is the only way historical navigation can stay
 // coherent.
 const SEED_MARINES: Marine[] = [
-  { id: 'm01', nom: 'Windtalker', grade: 'Caporal', specialisation: 'Comtech', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm02', nom: 'Badaboum', grade: '2nd', specialisation: 'Fusilier', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm03', nom: 'Quickie', grade: '2nd', specialisation: 'Recon', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm04', nom: 'Scrabble', grade: '2nd', specialisation: 'Medic', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm05', nom: 'Crash Test', grade: '2nd', specialisation: 'Fusilier', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm06', nom: 'Papi', grade: '2nd', specialisation: 'SmartGun', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm07', nom: 'Mule', grade: '2nd', specialisation: 'SmartGun', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm08', nom: 'Phoebe', grade: '2nd', specialisation: 'SmartGun', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm09', nom: 'Mike', grade: '2nd', specialisation: 'NRBC', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm10', nom: 'Marina', grade: '2nd', specialisation: 'Comtech', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm11', nom: 'Vet', grade: '2nd', specialisation: 'Medic', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm12', nom: 'Shinji', grade: '2nd', specialisation: 'Sniper', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm13', nom: 'Eric', grade: '2nd', specialisation: 'Fusilier', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm14', nom: 'Boris', grade: '2nd', specialisation: 'Heavy', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm15', nom: 'Dembele', grade: '2nd', specialisation: 'SmartGun', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
-  { id: 'm16', nom: 'Julia', grade: 'Caporale', specialisation: 'Comtech', conditionPhysique: 'RAS', etatPsychologique: 'RAS' },
+  { id: 'm01', nom: 'Windtalker', grade: GRADE.CAPORAL, specialisation: SPECIALISATION.COMTECH, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm02', nom: 'Badaboum', grade: GRADE.SECOND, specialisation: SPECIALISATION.FUSILIER, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm03', nom: 'Quickie', grade: GRADE.SECOND, specialisation: SPECIALISATION.RECON, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm04', nom: 'Scrabble', grade: GRADE.SECOND, specialisation: SPECIALISATION.MEDIC, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm05', nom: 'Crash Test', grade: GRADE.SECOND, specialisation: SPECIALISATION.FUSILIER, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm06', nom: 'Papi', grade: GRADE.SECOND, specialisation: SPECIALISATION.SMARTGUN, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm07', nom: 'Mule', grade: GRADE.SECOND, specialisation: SPECIALISATION.SMARTGUN, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm08', nom: 'Phoebe', grade: GRADE.SECOND, specialisation: SPECIALISATION.SMARTGUN, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm09', nom: 'Mike', grade: GRADE.SECOND, specialisation: SPECIALISATION.NRBC, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm10', nom: 'Marina', grade: GRADE.SECOND, specialisation: SPECIALISATION.COMTECH, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm11', nom: 'Vet', grade: GRADE.SECOND, specialisation: SPECIALISATION.MEDIC, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm12', nom: 'Shinji', grade: GRADE.SECOND, specialisation: SPECIALISATION.SNIPER, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm13', nom: 'Eric', grade: GRADE.SECOND, specialisation: SPECIALISATION.FUSILIER, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm14', nom: 'Boris', grade: GRADE.SECOND, specialisation: SPECIALISATION.HEAVY, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm15', nom: 'Dembele', grade: GRADE.SECOND, specialisation: SPECIALISATION.SMARTGUN, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
+  { id: 'm16', nom: 'Julia', grade: GRADE.CAPORALE, specialisation: SPECIALISATION.COMTECH, conditionPhysique: CONDITION_PHYSIQUE.RAS, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS },
 ];
 
 interface SeedScenario {
@@ -40,17 +41,17 @@ const SEED_SCENARIOS: SeedScenario[] = [
       date: '2186-03-03',
       morts: ['m16', 'm15'],
       blesses: [
-        { marineId: 'm09', details: 'Blessure grave' },
-        { marineId: 'm10', details: 'Blessure grave' },
-        { marineId: 'm08', details: 'Blessure grave' },
+        { marineId: 'm09', details: CONDITION_PHYSIQUE.BLESSURE_GRAVE },
+        { marineId: 'm10', details: CONDITION_PHYSIQUE.BLESSURE_GRAVE },
+        { marineId: 'm08', details: CONDITION_PHYSIQUE.BLESSURE_GRAVE },
       ],
     },
     updates: [
-      { marineId: 'm16', conditionPhysique: 'MORT', etatPsychologique: 'MORT', dateDebutIndispo: '2186-03-03', scenarioMort: 's01' },
-      { marineId: 'm15', conditionPhysique: 'MORT', etatPsychologique: 'MORT', dateDebutIndispo: '2186-03-03', scenarioMort: 's01' },
-      { marineId: 'm09', conditionPhysique: 'Convalescence', etatPsychologique: 'RAS', dateDebutIndispo: '2186-03-03', dureeJours: 6 },
-      { marineId: 'm10', conditionPhysique: 'Convalescence', etatPsychologique: 'RAS', dateDebutIndispo: '2186-03-03', dureeJours: 5 },
-      { marineId: 'm08', conditionPhysique: 'Convalescence', etatPsychologique: 'RAS', dateDebutIndispo: '2186-03-03', dureeJours: 5 },
+      { marineId: 'm16', conditionPhysique: CONDITION_PHYSIQUE.MORT, etatPsychologique: ETAT_PSYCHOLOGIQUE.MORT, dateDebutIndispo: '2186-03-03', scenarioMort: 's01' },
+      { marineId: 'm15', conditionPhysique: CONDITION_PHYSIQUE.MORT, etatPsychologique: ETAT_PSYCHOLOGIQUE.MORT, dateDebutIndispo: '2186-03-03', scenarioMort: 's01' },
+      { marineId: 'm09', conditionPhysique: CONDITION_PHYSIQUE.CONVALESCENCE, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS, dateDebutIndispo: '2186-03-03', dureeJours: 6 },
+      { marineId: 'm10', conditionPhysique: CONDITION_PHYSIQUE.CONVALESCENCE, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS, dateDebutIndispo: '2186-03-03', dureeJours: 5 },
+      { marineId: 'm08', conditionPhysique: CONDITION_PHYSIQUE.CONVALESCENCE, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS, dateDebutIndispo: '2186-03-03', dureeJours: 5 },
     ],
   },
   {
@@ -59,11 +60,11 @@ const SEED_SCENARIOS: SeedScenario[] = [
       nom: 'Dead Hills',
       date: '2186-03-04',
       morts: ['m14'],
-      blesses: [{ marineId: 'm05', details: 'Blessure grave' }],
+      blesses: [{ marineId: 'm05', details: CONDITION_PHYSIQUE.BLESSURE_GRAVE }],
     },
     updates: [
-      { marineId: 'm14', conditionPhysique: 'MORT', etatPsychologique: 'MORT', dateDebutIndispo: '2186-03-04', scenarioMort: 's02' },
-      { marineId: 'm05', conditionPhysique: 'Convalescence', etatPsychologique: 'RAS', dateDebutIndispo: '2186-03-04', dureeJours: 5 },
+      { marineId: 'm14', conditionPhysique: CONDITION_PHYSIQUE.MORT, etatPsychologique: ETAT_PSYCHOLOGIQUE.MORT, dateDebutIndispo: '2186-03-04', scenarioMort: 's02' },
+      { marineId: 'm05', conditionPhysique: CONDITION_PHYSIQUE.CONVALESCENCE, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS, dateDebutIndispo: '2186-03-04', dureeJours: 5 },
     ],
   },
   {
@@ -72,11 +73,11 @@ const SEED_SCENARIOS: SeedScenario[] = [
       nom: "Berkeley's Docks",
       date: '2186-03-05',
       morts: ['m07'],
-      blesses: [{ marineId: 'm13', details: 'Blessure légère' }],
+      blesses: [{ marineId: 'm13', details: CONDITION_PHYSIQUE.BLESSURE_LEGERE }],
     },
     updates: [
-      { marineId: 'm07', conditionPhysique: 'MORT', etatPsychologique: 'MORT', dateDebutIndispo: '2186-03-05', scenarioMort: 's03' },
-      { marineId: 'm13', conditionPhysique: 'Convalescence', etatPsychologique: 'RAS', dateDebutIndispo: '2186-03-05', dureeJours: 1 },
+      { marineId: 'm07', conditionPhysique: CONDITION_PHYSIQUE.MORT, etatPsychologique: ETAT_PSYCHOLOGIQUE.MORT, dateDebutIndispo: '2186-03-05', scenarioMort: 's03' },
+      { marineId: 'm13', conditionPhysique: CONDITION_PHYSIQUE.CONVALESCENCE, etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS, dateDebutIndispo: '2186-03-05', dureeJours: 1 },
     ],
   },
 ];

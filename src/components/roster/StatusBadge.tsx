@@ -1,24 +1,25 @@
 import type { ConditionPhysique, EtatPsychologique } from '../../types';
+import { CONDITION_PHYSIQUE, ETAT_PSYCHOLOGIQUE } from '../../data/domain';
 
 type BadgeVariant = 'green' | 'orange' | 'red' | 'gray';
 
 function getConditionVariant(condition: ConditionPhysique): BadgeVariant {
   switch (condition) {
-    case 'RAS': return 'green';
-    case 'Blessure légère':
-    case 'Blessure grave':
-    case 'Convalescence': return 'orange';
-    case 'MORT': return 'red';
+    case CONDITION_PHYSIQUE.RAS: return 'green';
+    case CONDITION_PHYSIQUE.BLESSURE_LEGERE:
+    case CONDITION_PHYSIQUE.BLESSURE_GRAVE:
+    case CONDITION_PHYSIQUE.CONVALESCENCE: return 'orange';
+    case CONDITION_PHYSIQUE.MORT: return 'red';
   }
 }
 
 function getEtatVariant(etat: EtatPsychologique): BadgeVariant {
   switch (etat) {
-    case 'RAS': return 'green';
-    case 'Léger trouble':
-    case 'Anxieux': return 'orange';
-    case 'Instable': return 'red';
-    case 'MORT': return 'gray';
+    case ETAT_PSYCHOLOGIQUE.RAS: return 'green';
+    case ETAT_PSYCHOLOGIQUE.LEGER_TROUBLE:
+    case ETAT_PSYCHOLOGIQUE.ANXIEUX: return 'orange';
+    case ETAT_PSYCHOLOGIQUE.INSTABLE: return 'red';
+    case ETAT_PSYCHOLOGIQUE.MORT: return 'gray';
   }
 }
 

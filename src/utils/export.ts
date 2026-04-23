@@ -1,5 +1,6 @@
 import type { Marine } from '../types';
 import { joursRestants } from './dates';
+import { CONDITION_PHYSIQUE } from '../data/domain';
 
 export function formatRosterText(marines: Marine[], dateCourante: string): string {
   const lines: string[] = [];
@@ -8,7 +9,7 @@ export function formatRosterText(marines: Marine[], dateCourante: string): strin
 
   for (const m of marines) {
     const remaining = joursRestants(m.dateDebutIndispo, m.dureeJours, dateCourante);
-    const isDead = m.conditionPhysique === 'MORT';
+    const isDead = m.conditionPhysique === CONDITION_PHYSIQUE.MORT;
 
     let status = '';
     if (isDead) {

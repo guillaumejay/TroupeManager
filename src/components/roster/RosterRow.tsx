@@ -6,14 +6,7 @@ import { StatusBadge } from './StatusBadge';
 import { InlineEdit } from './InlineEdit';
 import { EditSheetModal } from './EditSheetModal';
 import { EditHealthModal } from './EditHealthModal';
-
-const SPECIALISATIONS: Specialisation[] = [
-  'Fusilier', 'Comtech', 'Medic', 'SmartGun', 'Recon', 'Sniper', 'NRBC', 'Heavy',
-];
-
-const ETATS: EtatPsychologique[] = [
-  'RAS', 'Léger trouble', 'Anxieux', 'Instable', 'MORT',
-];
+import { SPECIALISATIONS, ETATS_PSYCHOLOGIQUES, CONDITION_PHYSIQUE, ETAT_PSYCHOLOGIQUE } from '../../data/domain';
 
 interface RosterRowProps {
   marine: Marine;
@@ -23,8 +16,8 @@ interface RosterRowProps {
 export function RosterRow({ marine, isHighlighted }: RosterRowProps) {
   const { state, dispatch } = useCampaign();
   const [editing, setEditing] = useState<'sheet' | 'health' | null>(null);
-  const isDead = marine.conditionPhysique === 'MORT';
-  const isConvalescent = marine.conditionPhysique === 'Convalescence';
+  const isDead = marine.conditionPhysique === CONDITION_PHYSIQUE.MORT;
+  const isConvalescent = marine.conditionPhysique === CONDITION_PHYSIQUE.CONVALESCENCE;
   const remaining = joursRestants(marine.dateDebutIndispo, marine.dureeJours, state.dateObservation);
 
   const update = (field: keyof Marine, value: Marine[keyof Marine]) => {
@@ -75,12 +68,12 @@ export function RosterRow({ marine, isHighlighted }: RosterRowProps) {
         </td>
         <td className="px-3 py-2 whitespace-nowrap">
           {isDead ? (
-            <StatusBadge value="MORT" type="etat" />
+            <StatusBadge value={ETAT_PSYCHOLOGIQUE.MORT} type="etat" />
           ) : (
             <InlineEdit
               value={marine.etatPsychologique}
               onCommit={(v) => update('etatPsychologique', v as EtatPsychologique)}
-              options={[...ETATS]}
+              options={[...ETATS_PSYCHOLOGIQUES]}
               disabled={false}
             />
           )}

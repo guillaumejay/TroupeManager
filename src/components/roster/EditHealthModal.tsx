@@ -2,14 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useCampaign } from '../../context/CampaignContext';
 import type { Marine, ConditionPhysique, EtatPsychologique } from '../../types';
 import { joursRestants } from '../../utils/dates';
-
-const CONDITIONS: ConditionPhysique[] = [
-  'RAS', 'Blessure légère', 'Blessure grave', 'Convalescence', 'MORT',
-];
-
-const ETATS: EtatPsychologique[] = [
-  'RAS', 'Léger trouble', 'Anxieux', 'Instable', 'MORT',
-];
+import { CONDITIONS_PHYSIQUES, ETATS_PSYCHOLOGIQUES, CONDITION_PHYSIQUE } from '../../data/domain';
 
 interface EditHealthModalProps {
   marine: Marine;
@@ -38,8 +31,8 @@ export function EditHealthModal({ marine, onClose }: EditHealthModalProps) {
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose]);
 
-  const isDead = conditionPhysique === 'MORT';
-  const showConvalescenceFields = !isDead && (conditionPhysique !== 'RAS' || !!marine.dateDebutIndispo);
+  const isDead = conditionPhysique === CONDITION_PHYSIQUE.MORT;
+  const showConvalescenceFields = !isDead && (conditionPhysique !== CONDITION_PHYSIQUE.RAS || !!marine.dateDebutIndispo);
 
   const remaining = joursRestants(
     dateDebutIndispo || undefined,
@@ -96,7 +89,7 @@ export function EditHealthModal({ marine, onClose }: EditHealthModalProps) {
               onChange={(e) => setConditionPhysique(e.target.value as ConditionPhysique)}
               className="w-full bg-gray-700 text-gray-100 text-sm rounded px-3 py-2 border border-gray-600 focus:outline-none focus:border-amber-500"
             >
-              {CONDITIONS.map((c) => (
+              {CONDITIONS_PHYSIQUES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
@@ -108,7 +101,7 @@ export function EditHealthModal({ marine, onClose }: EditHealthModalProps) {
               onChange={(e) => setEtatPsychologique(e.target.value as EtatPsychologique)}
               className="w-full bg-gray-700 text-gray-100 text-sm rounded px-3 py-2 border border-gray-600 focus:outline-none focus:border-amber-500"
             >
-              {ETATS.map((et) => (
+              {ETATS_PSYCHOLOGIQUES.map((et) => (
                 <option key={et} value={et}>{et}</option>
               ))}
             </select>

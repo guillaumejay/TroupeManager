@@ -1,12 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCampaign } from '../../context/CampaignContext';
 import type { Marine, Specialisation } from '../../types';
-
-const SPECIALISATIONS: Specialisation[] = [
-  'Fusilier', 'Comtech', 'Medic', 'SmartGun', 'Recon', 'Sniper', 'NRBC', 'Heavy',
-];
-
-const GRADES = ['2nd', 'Caporal', 'Caporale', 'Sergent', 'Lieutenant'];
+import { GRADES, SPECIALISATIONS } from '../../data/domain';
 
 interface EditSheetModalProps {
   marine: Marine;

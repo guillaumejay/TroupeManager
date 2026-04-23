@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCampaign } from '../../context/CampaignContext';
 import type { Scenario, MarineUpdate } from '../../types';
+import { CONDITION_PHYSIQUE, ETAT_PSYCHOLOGIQUE } from '../../data/domain';
 
 export function AddScenarioForm() {
   const { state, view, dispatch } = useCampaign();
@@ -10,7 +11,7 @@ export function AddScenarioForm() {
   const [selectedMorts, setSelectedMorts] = useState<string[]>([]);
   const [selectedBlesses, setSelectedBlesses] = useState<{ marineId: string; details: string }[]>([]);
 
-  const aliveMarines = view.marines.filter((m) => m.conditionPhysique !== 'MORT');
+  const aliveMarines = view.marines.filter((m) => m.conditionPhysique !== CONDITION_PHYSIQUE.MORT);
 
   const toggleMort = (id: string) => {
     setSelectedMorts((prev) =>
@@ -24,7 +25,7 @@ export function AddScenarioForm() {
     if (selectedBlesses.find((b) => b.marineId === id)) {
       setSelectedBlesses((prev) => prev.filter((b) => b.marineId !== id));
     } else {
-      setSelectedBlesses((prev) => [...prev, { marineId: id, details: 'Blessure grave' }]);
+      setSelectedBlesses((prev) => [...prev, { marineId: id, details: CONDITION_PHYSIQUE.BLESSURE_GRAVE }]);
       // Remove from morts if added to blesses
       setSelectedMorts((prev) => prev.filter((x) => x !== id));
     }
@@ -48,15 +49,15 @@ export function AddScenarioForm() {
     const marineUpdates: MarineUpdate[] = [
       ...selectedMorts.map((id) => ({
         marineId: id,
-        conditionPhysique: 'MORT' as const,
-        etatPsychologique: 'MORT' as const,
+        conditionPhysique: CONDITION_PHYSIQUE.MORT,
+        etatPsychologique: ETAT_PSYCHOLOGIQUE.MORT,
         dateDebutIndispo: date,
         scenarioMort: scenarioId,
       })),
       ...selectedBlesses.map((b) => ({
         marineId: b.marineId,
-        conditionPhysique: 'Convalescence' as const,
-        etatPsychologique: view.marines.find((m) => m.id === b.marineId)?.etatPsychologique ?? ('RAS' as const),
+        conditionPhysique: CONDITION_PHYSIQUE.CONVALESCENCE,
+        etatPsychologique: view.marines.find((m) => m.id === b.marineId)?.etatPsychologique ?? ETAT_PSYCHOLOGIQUE.RAS,
         dateDebutIndispo: date,
         dureeJours: 30, // default convalescence
       })),

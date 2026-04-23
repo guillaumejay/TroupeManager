@@ -1,12 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCampaign } from '../../context/CampaignContext';
 import type { Specialisation } from '../../types';
-
-const SPECIALISATIONS: Specialisation[] = [
-  'Fusilier', 'Comtech', 'Medic', 'SmartGun', 'Recon', 'Sniper', 'NRBC', 'Heavy',
-];
-
-const GRADES = ['2nd', 'Caporal', 'Caporale', 'Sergent', 'Lieutenant'];
+import { GRADE, GRADES, SPECIALISATION, SPECIALISATIONS, CONDITION_PHYSIQUE, ETAT_PSYCHOLOGIQUE } from '../../data/domain';
 
 interface AddMarineModalProps {
   onClose: () => void;
@@ -15,8 +10,8 @@ interface AddMarineModalProps {
 export function AddMarineModal({ onClose }: AddMarineModalProps) {
   const { state, dispatch } = useCampaign();
   const [nom, setNom] = useState('');
-  const [grade, setGrade] = useState('2nd');
-  const [specialisation, setSpecialisation] = useState<Specialisation>('Fusilier');
+  const [grade, setGrade] = useState<string>(GRADE.SECOND);
+  const [specialisation, setSpecialisation] = useState<Specialisation>(SPECIALISATION.FUSILIER);
   const nomRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -45,8 +40,8 @@ export function AddMarineModal({ onClose }: AddMarineModalProps) {
         nom: nom.trim(),
         grade,
         specialisation,
-        conditionPhysique: 'RAS',
-        etatPsychologique: 'RAS',
+        conditionPhysique: CONDITION_PHYSIQUE.RAS,
+        etatPsychologique: ETAT_PSYCHOLOGIQUE.RAS,
       },
     });
 
