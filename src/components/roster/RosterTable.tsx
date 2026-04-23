@@ -3,7 +3,7 @@ import { RosterRow } from './RosterRow';
 
 const HEADERS = [
   'Nom', 'Grade', 'Spécialisation', 'Condition physique',
-  'État psychologique', 'Début indispo', 'Durée (jours)', 'Statut',
+  'État psychologique', 'Début indispo', 'Durée (jours)', 'Statut', '',
 ];
 
 export function RosterTable() {
