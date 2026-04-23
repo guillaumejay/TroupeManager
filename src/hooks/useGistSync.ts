@@ -40,10 +40,9 @@ function readGistIdFromUrl(): string | null {
 
 function serializePersistent(state: CampaignState): string {
   return JSON.stringify({
-    marines: state.marines,
-    scenarios: state.scenarios,
-    dateCourante: state.dateCourante,
     events: state.events,
+    dateCourante: state.dateCourante,
+    dateObservation: state.dateObservation,
   });
 }
 

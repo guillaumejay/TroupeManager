@@ -3,8 +3,9 @@ import { ScenarioMarker } from './ScenarioMarker';
 import { AddScenarioForm } from '../scenario/AddScenarioForm';
 
 export function TimelineView() {
-  const { state, dispatch } = useCampaign();
-  const { scenarios, marines, highlightedMarineIds } = state;
+  const { state, view, dispatch } = useCampaign();
+  const { scenarios, marines } = view;
+  const { highlightedMarineIds } = state;
 
   const getMarineName = (id: string) => marines.find((m) => m.id === id)?.nom ?? id;
 

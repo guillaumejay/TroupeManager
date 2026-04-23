@@ -7,7 +7,7 @@ const HEADERS = [
 ];
 
 export function RosterTable() {
-  const { state } = useCampaign();
+  const { state, view } = useCampaign();
 
   return (
     <div className="overflow-x-auto">
@@ -20,7 +20,7 @@ export function RosterTable() {
           </tr>
         </thead>
         <tbody>
-          {state.marines.map((marine) => (
+          {view.marines.map((marine) => (
             <RosterRow
               key={marine.id}
               marine={marine}

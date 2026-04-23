@@ -49,40 +49,6 @@ export interface Scenario {
 
 export type MarineUpdateReason = 'sheet' | 'health';
 
-export type EventType =
-  | 'marine-added'
-  | 'marine-updated'
-  | 'marine-sheet-updated'
-  | 'marine-health-updated'
-  | 'scenario-added'
-  | 'day-advanced';
-
-export interface CampaignEvent {
-  id: string;
-  timestamp: string; // ISO 8601 real-world time
-  dateCampagne: string; // campaign date when the event occurred
-  type: EventType;
-  label: string; // human-readable summary, pre-formatted
-}
-
-export interface CampaignState {
-  marines: Marine[];
-  scenarios: Scenario[];
-  dateCourante: string; // "YYYY-MM-DD"
-  highlightedMarineIds: string[];
-  events: CampaignEvent[];
-}
-
-export type CampaignAction =
-  | { type: 'UPDATE_MARINE'; marineId: string; field: keyof Marine; value: Marine[keyof Marine] }
-  | { type: 'UPDATE_MARINE_FIELDS'; marineId: string; fields: Partial<Marine>; reason: MarineUpdateReason }
-  | { type: 'ADD_MARINE'; marine: Marine }
-  | { type: 'ADVANCE_DAY' }
-  | { type: 'ADD_SCENARIO'; scenario: Scenario; marineUpdates: MarineUpdate[] }
-  | { type: 'HIGHLIGHT_MARINES'; marineIds: string[] }
-  | { type: 'CLEAR_HIGHLIGHT' }
-  | { type: 'LOAD_STATE'; state: CampaignState };
-
 export interface MarineUpdate {
   marineId: string;
   conditionPhysique: ConditionPhysique;
@@ -91,3 +57,56 @@ export interface MarineUpdate {
   dureeJours?: number;
   scenarioMort?: string;
 }
+
+interface DomainEventBase {
+  id: string;
+  timestamp: string;     // ISO 8601 wall-clock (secondary sort)
+  dateCampagne: string;  // "YYYY-MM-DD" in-world (primary sort, also filter key)
+}
+
+export type DomainEvent =
+  | (DomainEventBase & { type: 'marine-added'; marine: Marine })
+  | (DomainEventBase & {
+      type: 'marine-field-updated';
+      marineId: string;
+      field: keyof Marine;
+      value: Marine[keyof Marine];
+    })
+  | (DomainEventBase & {
+      type: 'marine-fields-updated';
+      marineId: string;
+      fields: Partial<Marine>;
+      reason: MarineUpdateReason;
+    })
+  | (DomainEventBase & {
+      type: 'scenario-added';
+      scenario: Scenario;
+      marineUpdates: MarineUpdate[];
+    });
+
+export type EventType = DomainEvent['type'];
+
+export interface CampaignState {
+  events: DomainEvent[];       // kept sorted by (dateCampagne, timestamp)
+  dateCourante: string;        // campaign clock — latest date reached
+  dateObservation: string;     // view cursor (≤ dateCourante)
+  highlightedMarineIds: string[];
+}
+
+export interface DerivedView {
+  marines: Marine[];
+  scenarios: Scenario[];
+}
+
+export type CampaignAction =
+  | { type: 'UPDATE_MARINE'; marineId: string; field: keyof Marine; value: Marine[keyof Marine] }
+  | { type: 'UPDATE_MARINE_FIELDS'; marineId: string; fields: Partial<Marine>; reason: MarineUpdateReason }
+  | { type: 'ADD_MARINE'; marine: Marine }
+  | { type: 'ADVANCE_DAY' }
+  | { type: 'ADD_SCENARIO'; scenario: Scenario; marineUpdates: MarineUpdate[] }
+  | { type: 'SET_OBSERVATION_DATE'; date: string }
+  | { type: 'SHIFT_OBSERVATION_DATE'; days: number }
+  | { type: 'REWIND_TO_OBSERVATION' }
+  | { type: 'HIGHLIGHT_MARINES'; marineIds: string[] }
+  | { type: 'CLEAR_HIGHLIGHT' }
+  | { type: 'LOAD_STATE'; state: CampaignState };

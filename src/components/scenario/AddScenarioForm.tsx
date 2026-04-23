@@ -3,14 +3,14 @@ import { useCampaign } from '../../context/CampaignContext';
 import type { Scenario, MarineUpdate } from '../../types';
 
 export function AddScenarioForm() {
-  const { state, dispatch } = useCampaign();
+  const { state, view, dispatch } = useCampaign();
   const [isOpen, setIsOpen] = useState(false);
   const [nom, setNom] = useState('');
-  const [date, setDate] = useState(state.dateCourante);
+  const [date, setDate] = useState(state.dateObservation);
   const [selectedMorts, setSelectedMorts] = useState<string[]>([]);
   const [selectedBlesses, setSelectedBlesses] = useState<{ marineId: string; details: string }[]>([]);
 
-  const aliveMarines = state.marines.filter((m) => m.conditionPhysique !== 'MORT');
+  const aliveMarines = view.marines.filter((m) => m.conditionPhysique !== 'MORT');
 
   const toggleMort = (id: string) => {
     setSelectedMorts((prev) =>
@@ -34,7 +34,8 @@ export function AddScenarioForm() {
     e.preventDefault();
     if (!nom.trim()) return;
 
-    const scenarioId = `s${String(state.scenarios.length + 1).padStart(2, '0')}`;
+    const scenarioCount = state.events.filter((e) => e.type === 'scenario-added').length;
+    const scenarioId = `s${String(scenarioCount + 1).padStart(2, '0')}`;
 
     const scenario: Scenario = {
       id: scenarioId,
@@ -55,7 +56,7 @@ export function AddScenarioForm() {
       ...selectedBlesses.map((b) => ({
         marineId: b.marineId,
         conditionPhysique: 'Convalescence' as const,
-        etatPsychologique: state.marines.find((m) => m.id === b.marineId)?.etatPsychologique ?? ('RAS' as const),
+        etatPsychologique: view.marines.find((m) => m.id === b.marineId)?.etatPsychologique ?? ('RAS' as const),
         dateDebutIndispo: date,
         dureeJours: 30, // default convalescence
       })),
@@ -63,7 +64,7 @@ export function AddScenarioForm() {
 
     dispatch({ type: 'ADD_SCENARIO', scenario, marineUpdates });
     setNom('');
-    setDate(state.dateCourante);
+    setDate(state.dateObservation);
     setSelectedMorts([]);
     setSelectedBlesses([]);
     setIsOpen(false);

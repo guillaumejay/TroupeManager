@@ -50,15 +50,11 @@ export function isCampaignState(value: unknown): value is CampaignState {
 	if (typeof value !== "object" || value === null) return false;
 
 	const candidate = value as Partial<CampaignState>;
-	if (!Array.isArray(candidate.marines)) return false;
-	if (!Array.isArray(candidate.scenarios)) return false;
+	if (!Array.isArray(candidate.events)) return false;
 	if (typeof candidate.dateCourante !== "string") return false;
+	if (typeof candidate.dateObservation !== "string") return false;
 
 	if (candidate.highlightedMarineIds !== undefined && !Array.isArray(candidate.highlightedMarineIds)) {
-		return false;
-	}
-
-	if (candidate.events !== undefined && !Array.isArray(candidate.events)) {
 		return false;
 	}
 

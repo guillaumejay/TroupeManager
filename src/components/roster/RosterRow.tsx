@@ -25,7 +25,7 @@ export function RosterRow({ marine, isHighlighted }: RosterRowProps) {
   const [editing, setEditing] = useState<'sheet' | 'health' | null>(null);
   const isDead = marine.conditionPhysique === 'MORT';
   const isConvalescent = marine.conditionPhysique === 'Convalescence';
-  const remaining = joursRestants(marine.dateDebutIndispo, marine.dureeJours, state.dateCourante);
+  const remaining = joursRestants(marine.dateDebutIndispo, marine.dureeJours, state.dateObservation);
 
   const update = (field: keyof Marine, value: Marine[keyof Marine]) => {
     dispatch({ type: 'UPDATE_MARINE', marineId: marine.id, field, value });

@@ -1,10 +1,12 @@
-import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
-import type { CampaignState, CampaignAction } from '../types';
+import { createContext, useContext, useReducer, useEffect, useMemo, type ReactNode } from 'react';
+import type { CampaignState, CampaignAction, DerivedView } from '../types';
 import { campaignReducer } from './campaignReducer';
 import { loadState, saveState } from '../hooks/useLocalStorage';
+import { deriveView } from '../utils/deriveState';
 
 interface CampaignContextValue {
   state: CampaignState;
+  view: DerivedView;
   dispatch: React.Dispatch<CampaignAction>;
 }
 
@@ -17,8 +19,18 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
     saveState(state);
   }, [state]);
 
+  const view = useMemo(
+    () => deriveView(state.events, state.dateObservation),
+    [state.events, state.dateObservation],
+  );
+
+  const value = useMemo(
+    () => ({ state, view, dispatch }),
+    [state, view],
+  );
+
   return (
-    <CampaignContext.Provider value={{ state, dispatch }}>
+    <CampaignContext.Provider value={value}>
       {children}
     </CampaignContext.Provider>
   );

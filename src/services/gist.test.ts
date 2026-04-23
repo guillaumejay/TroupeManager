@@ -3,20 +3,25 @@ import type { CampaignState } from '../types';
 import { createGist, fetchGist, GistError, updateGist } from './gist';
 
 const validState: CampaignState = {
-  marines: [
+  events: [
     {
-      id: 'm01',
-      nom: 'Test',
-      grade: '2nd',
-      specialisation: 'Fusilier',
-      conditionPhysique: 'RAS',
-      etatPsychologique: 'RAS',
+      id: 'e1',
+      timestamp: '2186-03-01T00:00:00.000Z',
+      dateCampagne: '2186-03-01',
+      type: 'marine-added',
+      marine: {
+        id: 'm01',
+        nom: 'Test',
+        grade: '2nd',
+        specialisation: 'Fusilier',
+        conditionPhysique: 'RAS',
+        etatPsychologique: 'RAS',
+      },
     },
   ],
-  scenarios: [],
   dateCourante: '2186-03-10',
+  dateObservation: '2186-03-10',
   highlightedMarineIds: [],
-  events: [],
 };
 
 interface MockResponseInit {
@@ -57,8 +62,9 @@ describe('fetchGist', () => {
     });
 
     const result = await fetchGist('abc123');
-    expect(result.marines).toHaveLength(1);
+    expect(result.events).toHaveLength(1);
     expect(result.dateCourante).toBe('2186-03-10');
+    expect(result.dateObservation).toBe('2186-03-10');
   });
 
   it('throws GistError NOT_FOUND on 404', async () => {
@@ -90,11 +96,10 @@ describe('fetchGist', () => {
         updated_at: '2026-04-01T12:00:00Z',
         files: {
           'troupe-manager.json': {
-            // marines as string instead of array — must be rejected
             content: JSON.stringify({
-              marines: 'not-an-array',
-              scenarios: [],
+              events: 'not-an-array',
               dateCourante: '2186-03-10',
+              dateObservation: '2186-03-10',
             }),
           },
         },
@@ -116,9 +121,9 @@ describe('fetchGist', () => {
         files: {
           'troupe-manager.json': {
             content: JSON.stringify({
-              marines: [],
-              scenarios: [],
+              events: [],
               dateCourante: '2186-03-10',
+              dateObservation: '2186-03-10',
               highlightedMarineIds: 'nope',
             }),
           },
@@ -141,9 +146,9 @@ describe('fetchGist', () => {
         files: {
           'troupe-manager.json': {
             content: JSON.stringify({
-              marines: [],
-              scenarios: [],
+              events: [],
               dateCourante: '2186-03-10',
+              dateObservation: '2186-03-10',
             }),
           },
         },

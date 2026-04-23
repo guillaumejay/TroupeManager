@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CampaignProvider, useCampaign } from './context/CampaignContext';
 import { GistSyncProvider } from './context/GistSyncProvider';
 import { useGistSyncContext } from './context/gistSyncContext';
@@ -36,33 +36,161 @@ function SyncIndicator() {
   );
 }
 
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function DateNav() {
+  const { state, dispatch } = useCampaign();
+  const [confirmRewind, setConfirmRewind] = useState(false);
+  const [draftDate, setDraftDate] = useState(state.dateObservation);
+  const isPast = state.dateObservation < state.dateCourante;
+
+  const futureEventCount = isPast
+    ? state.events.filter((e) => e.dateCampagne > state.dateObservation).length
+    : 0;
+
+  useEffect(() => {
+    if (!isPast) setConfirmRewind(false);
+  }, [isPast]);
+
+  // Keep draft in sync with external changes (◀ ▶ button, rewind, advance).
+  useEffect(() => {
+    setDraftDate(state.dateObservation);
+  }, [state.dateObservation]);
+
+  const commitDraft = () => {
+    if (ISO_DATE_RE.test(draftDate)) {
+      dispatch({ type: 'SET_OBSERVATION_DATE', date: draftDate });
+    } else {
+      setDraftDate(state.dateObservation);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-400">Observation :</span>
+        <button
+          onClick={() => dispatch({ type: 'SHIFT_OBSERVATION_DATE', days: -1 })}
+          className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded transition-colors cursor-pointer"
+          title="Jour précédent"
+          aria-label="Jour précédent"
+        >
+          ◀
+        </button>
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="\d{4}-\d{2}-\d{2}"
+          value={draftDate}
+          onChange={(e) => setDraftDate(e.target.value)}
+          onBlur={commitDraft}
+          onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+          placeholder="YYYY-MM-DD"
+          aria-label="Date d'observation (ISO)"
+          className="bg-gray-700 text-gray-100 text-sm rounded px-2 py-1 border border-gray-600 focus:outline-none focus:border-amber-500 font-mono w-[14ch]"
+        />
+        <button
+          onClick={() => dispatch({ type: 'SHIFT_OBSERVATION_DATE', days: 1 })}
+          disabled={!isPast}
+          className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Jour suivant"
+          aria-label="Jour suivant"
+        >
+          ▶
+        </button>
+      </div>
+      {isPast && (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => dispatch({ type: 'SET_OBSERVATION_DATE', date: state.dateCourante })}
+            className="px-2 py-1 text-xs text-amber-300 border border-amber-500/40 rounded hover:bg-amber-900/20 transition-colors cursor-pointer"
+            title={`Retour à ${state.dateCourante}`}
+          >
+            retour au présent
+          </button>
+          {confirmRewind ? (
+            <div className={`flex items-center gap-1.5 text-xs rounded px-2 py-1 border ${
+              futureEventCount > 0
+                ? 'bg-red-900/30 border-red-600/50'
+                : 'bg-gray-800 border-gray-600'
+            }`}>
+              <span className={futureEventCount > 0 ? 'text-red-200' : 'text-gray-200'}>
+                {futureEventCount > 0
+                  ? `Supprimer ${futureEventCount} événement${futureEventCount > 1 ? 's' : ''} futur${futureEventCount > 1 ? 's' : ''} ?`
+                  : `Replacer le présent au ${state.dateObservation} ?`}
+              </span>
+              <button
+                onClick={() => { dispatch({ type: 'REWIND_TO_OBSERVATION' }); setConfirmRewind(false); }}
+                className={`px-2 py-0.5 text-white rounded cursor-pointer ${
+                  futureEventCount > 0 ? 'bg-red-700 hover:bg-red-600' : 'bg-amber-700 hover:bg-amber-600'
+                }`}
+              >
+                Oui
+              </button>
+              <button
+                onClick={() => setConfirmRewind(false)}
+                className="px-2 py-0.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded cursor-pointer"
+              >
+                Non
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmRewind(true)}
+              className={`px-2 py-1 text-xs border rounded transition-colors cursor-pointer ${
+                futureEventCount > 0
+                  ? 'text-red-300 border-red-500/40 hover:bg-red-900/20'
+                  : 'text-amber-300 border-amber-500/40 hover:bg-amber-900/20'
+              }`}
+              title={
+                futureEventCount > 0
+                  ? `Supprime ${futureEventCount} événement(s) postérieur(s) et place le présent au ${state.dateObservation}`
+                  : `Replace le présent au ${state.dateObservation} (aucun événement à supprimer)`
+              }
+            >
+              revenir à cette date
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>('roster');
   const [exportFeedback, setExportFeedback] = useState('');
   const [showAddMarine, setShowAddMarine] = useState(false);
-  const { state, dispatch } = useCampaign();
+  const { state, view, dispatch } = useCampaign();
 
   const handleExport = async () => {
-    const ok = await copyRosterToClipboard(state.marines, state.dateCourante);
+    const ok = await copyRosterToClipboard(view.marines, state.dateObservation);
     setExportFeedback(ok ? 'Copié !' : 'Copie via prompt');
     setTimeout(() => setExportFeedback(''), 2000);
   };
 
+  const isPast = state.dateObservation < state.dateCourante;
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
       {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
+      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-xl font-bold tracking-wide">Troupe Manager</h1>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <SyncIndicator />
-          <span className="text-sm text-gray-400">Date de campagne :</span>
-          <span className="font-mono text-amber-400">{formatDateDisplay(state.dateCourante)}</span>
-          <button
-            onClick={() => dispatch({ type: 'ADVANCE_DAY' })}
-            className="px-3 py-1 text-sm bg-amber-600 hover:bg-amber-500 rounded transition-colors cursor-pointer"
-          >
-            +1 jour
-          </button>
+          <DateNav />
+          <div className="flex items-center gap-2 border-l border-gray-700 pl-4">
+            <span className="text-sm text-gray-400">Présent :</span>
+            <span className="font-mono text-amber-400 text-sm">{formatDateDisplay(state.dateCourante)}</span>
+            <button
+              onClick={() => dispatch({ type: 'ADVANCE_DAY' })}
+              disabled={isPast}
+              className="px-3 py-1 text-sm bg-amber-600 hover:bg-amber-500 rounded transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              title={isPast ? 'Revenez au présent pour avancer le temps' : undefined}
+            >
+              +1 jour
+            </button>
+          </div>
         </div>
       </header>
 

@@ -20,7 +20,7 @@ export function EditHealthModal({ marine, onClose }: EditHealthModalProps) {
   const { state, dispatch } = useCampaign();
   const [conditionPhysique, setConditionPhysique] = useState<ConditionPhysique>(marine.conditionPhysique);
   const [etatPsychologique, setEtatPsychologique] = useState<EtatPsychologique>(marine.etatPsychologique);
-  const [dateDebutIndispo, setDateDebutIndispo] = useState(marine.dateDebutIndispo ?? state.dateCourante);
+  const [dateDebutIndispo, setDateDebutIndispo] = useState(marine.dateDebutIndispo ?? state.dateObservation);
   const [dureeJours, setDureeJours] = useState(
     marine.dureeJours !== undefined ? String(marine.dureeJours) : '',
   );
@@ -44,7 +44,7 @@ export function EditHealthModal({ marine, onClose }: EditHealthModalProps) {
   const remaining = joursRestants(
     dateDebutIndispo || undefined,
     dureeJours ? Number(dureeJours) : undefined,
-    state.dateCourante,
+    state.dateObservation,
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -153,8 +153,8 @@ export function EditHealthModal({ marine, onClose }: EditHealthModalProps) {
             {remaining !== null && (
               <div className="text-xs text-gray-400">
                 {remaining <= 0
-                  ? <span className="text-green-400">Opérationnel au {state.dateCourante}</span>
-                  : <span className="text-amber-400">{remaining}j restants au {state.dateCourante}</span>}
+                  ? <span className="text-green-400">Opérationnel au {state.dateObservation}</span>
+                  : <span className="text-amber-400">{remaining}j restants au {state.dateObservation}</span>}
               </div>
             )}
           </div>

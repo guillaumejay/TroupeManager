@@ -1,4 +1,4 @@
-import type { Marine, Scenario, MarineUpdate, CampaignEvent, EventType, MarineUpdateReason } from '../types';
+import type { DomainEvent, Marine } from '../types';
 import { formatDateDisplay } from './dates';
 
 const FIELD_LABELS: Partial<Record<keyof Marine, string>> = {
@@ -12,110 +12,108 @@ const FIELD_LABELS: Partial<Record<keyof Marine, string>> = {
   scenarioMort: 'Scénario de mort',
 };
 
-function formatValue(field: keyof Marine, value: Marine[keyof Marine]): string {
+const REASON_HEADING = { sheet: 'Fiche modifiée', health: 'Santé modifiée' } as const;
+
+function formatValue(field: keyof Marine, value: Marine[keyof Marine] | undefined): string {
   if (value === undefined || value === null || value === '') return '—';
-  if (field === 'dateDebutIndispo' && typeof value === 'string') {
-    return formatDateDisplay(value);
-  }
-  if (field === 'dureeJours' && typeof value === 'number') {
-    return `${value}j`;
-  }
+  if (field === 'dateDebutIndispo' && typeof value === 'string') return formatDateDisplay(value);
+  if (field === 'dureeJours' && typeof value === 'number') return `${value}j`;
   return String(value);
 }
 
-function newEvent(type: EventType, dateCampagne: string, label: string): CampaignEvent {
-  return {
-    id: typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    timestamp: new Date().toISOString(),
-    dateCampagne,
-    type,
-    label,
-  };
-}
-
-export function buildMarineUpdateEvent(
-  marine: Marine,
-  field: keyof Marine,
-  newValue: Marine[keyof Marine],
-  dateCampagne: string,
-): CampaignEvent | null {
-  const oldValue = marine[field];
-  if (oldValue === newValue) return null;
-
-  const fieldLabel = FIELD_LABELS[field] ?? String(field);
-  const oldFormatted = formatValue(field, oldValue);
-  const newFormatted = formatValue(field, newValue);
-  const label = `${marine.nom} — ${fieldLabel} : ${oldFormatted} → ${newFormatted}`;
-
-  return newEvent('marine-updated', dateCampagne, label);
-}
-
-const REASON_HEADING: Record<MarineUpdateReason, string> = {
-  sheet: 'Fiche modifiée',
-  health: 'Santé modifiée',
-};
-
-const REASON_EVENT_TYPE: Record<MarineUpdateReason, EventType> = {
-  sheet: 'marine-sheet-updated',
-  health: 'marine-health-updated',
-};
-
-export function buildMarineFieldsUpdateEvent(
-  marine: Marine,
-  fields: Partial<Marine>,
-  reason: MarineUpdateReason,
-  dateCampagne: string,
-): CampaignEvent | null {
-  const diffs: string[] = [];
-  for (const key of Object.keys(fields) as (keyof Marine)[]) {
-    const newValue = fields[key];
-    const oldValue = marine[key];
-    if (oldValue === newValue) continue;
-    const fieldLabel = FIELD_LABELS[key] ?? String(key);
-    diffs.push(`${fieldLabel} ${formatValue(key, oldValue)} → ${formatValue(key, newValue)}`);
+function applyEventToMarines(marines: Map<string, Marine>, event: DomainEvent): void {
+  switch (event.type) {
+    case 'marine-added':
+      marines.set(event.marine.id, event.marine);
+      return;
+    case 'marine-field-updated': {
+      const m = marines.get(event.marineId);
+      if (m) marines.set(event.marineId, { ...m, [event.field]: event.value });
+      return;
+    }
+    case 'marine-fields-updated': {
+      const m = marines.get(event.marineId);
+      if (m) marines.set(event.marineId, { ...m, ...event.fields });
+      return;
+    }
+    case 'scenario-added':
+      for (const u of event.marineUpdates) {
+        const m = marines.get(u.marineId);
+        if (!m) continue;
+        marines.set(u.marineId, {
+          ...m,
+          conditionPhysique: u.conditionPhysique,
+          etatPsychologique: u.etatPsychologique,
+          dateDebutIndispo: u.dateDebutIndispo ?? m.dateDebutIndispo,
+          dureeJours: u.dureeJours ?? m.dureeJours,
+          scenarioMort: u.scenarioMort ?? m.scenarioMort,
+        });
+      }
+      return;
   }
-  if (diffs.length === 0) return null;
-
-  const label = `${marine.nom} — ${REASON_HEADING[reason]} : ${diffs.join(', ')}`;
-  return newEvent(REASON_EVENT_TYPE[reason], dateCampagne, label);
 }
 
-export function buildMarineAddedEvent(marine: Marine, dateCampagne: string): CampaignEvent {
-  const label = `Nouveau marine : ${marine.nom} (${marine.grade}, ${marine.specialisation})`;
-  return newEvent('marine-added', dateCampagne, label);
-}
+export function renderEventLabel(event: DomainEvent, marinesBefore: Map<string, Marine>): string {
+  switch (event.type) {
+    case 'marine-added':
+      return `Nouveau marine : ${event.marine.nom} (${event.marine.grade}, ${event.marine.specialisation})`;
 
-export function buildDayAdvancedEvent(oldDate: string, newDate: string): CampaignEvent {
-  const label = `Jour avancé : ${formatDateDisplay(oldDate)} → ${formatDateDisplay(newDate)}`;
-  return newEvent('day-advanced', newDate, label);
-}
+    case 'marine-field-updated': {
+      const m = marinesBefore.get(event.marineId);
+      const name = m?.nom ?? event.marineId;
+      const fieldLabel = FIELD_LABELS[event.field] ?? String(event.field);
+      const oldVal = m ? formatValue(event.field, m[event.field]) : '—';
+      const newVal = formatValue(event.field, event.value);
+      return `${name} — ${fieldLabel} : ${oldVal} → ${newVal}`;
+    }
 
-export function buildScenarioAddedEvent(
-  scenario: Scenario,
-  marineUpdates: MarineUpdate[],
-  marines: Marine[],
-  dateCampagne: string,
-): CampaignEvent {
-  const nMorts = scenario.morts.length;
-  const nBlesses = scenario.blesses.length;
-  const parts: string[] = [];
-  if (nMorts > 0) {
-    const noms = scenario.morts
-      .map((id) => marines.find((m) => m.id === id)?.nom ?? id)
-      .join(', ');
-    parts.push(`${nMorts} mort${nMorts > 1 ? 's' : ''} (${noms})`);
+    case 'marine-fields-updated': {
+      const m = marinesBefore.get(event.marineId);
+      const name = m?.nom ?? event.marineId;
+      const diffs: string[] = [];
+      for (const key of Object.keys(event.fields) as (keyof Marine)[]) {
+        const newVal = event.fields[key];
+        const oldVal = m?.[key];
+        if (oldVal === newVal) continue;
+        const fl = FIELD_LABELS[key] ?? String(key);
+        diffs.push(`${fl} ${formatValue(key, oldVal)} → ${formatValue(key, newVal)}`);
+      }
+      const heading = REASON_HEADING[event.reason];
+      if (diffs.length === 0) return `${name} — ${heading} (aucun changement)`;
+      return `${name} — ${heading} : ${diffs.join(', ')}`;
+    }
+
+    case 'scenario-added': {
+      const nMorts = event.scenario.morts.length;
+      const nBlesses = event.scenario.blesses.length;
+      const parts: string[] = [];
+      if (nMorts > 0) {
+        const noms = event.scenario.morts.map((id) => marinesBefore.get(id)?.nom ?? id).join(', ');
+        parts.push(`${nMorts} mort${nMorts > 1 ? 's' : ''} (${noms})`);
+      }
+      if (nBlesses > 0) {
+        const noms = event.scenario.blesses
+          .map((b) => marinesBefore.get(b.marineId)?.nom ?? b.marineId)
+          .join(', ');
+        parts.push(`${nBlesses} blessé${nBlesses > 1 ? 's' : ''} (${noms})`);
+      }
+      const suffix = parts.length > 0 ? ` — ${parts.join(', ')}` : '';
+      return `Scénario « ${event.scenario.nom} » (${formatDateDisplay(event.scenario.date)})${suffix}`;
+    }
   }
-  if (nBlesses > 0) {
-    const noms = scenario.blesses
-      .map((b) => marines.find((m) => m.id === b.marineId)?.nom ?? b.marineId)
-      .join(', ');
-    parts.push(`${nBlesses} blessé${nBlesses > 1 ? 's' : ''} (${noms})`);
+}
+
+/**
+ * Iterate events in chronological order, returning each paired with its
+ * rendered label (using marine state as-of just before the event fired).
+ */
+export function labelEvents(events: DomainEvent[]): Array<{ event: DomainEvent; label: string }> {
+  const marines = new Map<string, Marine>();
+  const out: Array<{ event: DomainEvent; label: string }> = [];
+  for (const e of events) {
+    const label = renderEventLabel(e, marines);
+    applyEventToMarines(marines, e);
+    out.push({ event: e, label });
   }
-  // Silence unused-param lint if marineUpdates has no extra info right now.
-  void marineUpdates;
-  const suffix = parts.length > 0 ? ` — ${parts.join(', ')}` : '';
-  const label = `Scénario « ${scenario.nom} » (${formatDateDisplay(scenario.date)})${suffix}`;
-  return newEvent('scenario-added', dateCampagne, label);
+  return out;
 }

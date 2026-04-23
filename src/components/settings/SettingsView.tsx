@@ -24,9 +24,9 @@ export function SettingsView() {
   const handleExport = () => {
     const json = JSON.stringify(
       {
-        marines: state.marines,
-        scenarios: state.scenarios,
+        events: state.events,
         dateCourante: state.dateCourante,
+        dateObservation: state.dateObservation,
         highlightedMarineIds: [],
       },
       null,

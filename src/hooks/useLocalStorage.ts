@@ -3,20 +3,28 @@ import { INITIAL_STATE } from '../data/initialState';
 
 const STORAGE_KEY = 'troupe-manager-state';
 
+function isNewShape(parsed: unknown): parsed is CampaignState {
+  if (typeof parsed !== 'object' || parsed === null) return false;
+  const c = parsed as Partial<CampaignState>;
+  return (
+    Array.isArray(c.events) &&
+    typeof c.dateCourante === 'string' &&
+    typeof c.dateObservation === 'string'
+  );
+}
+
 export function loadState(): CampaignState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return INITIAL_STATE;
-    const parsed = JSON.parse(raw) as CampaignState;
-    // Basic shape validation
-    if (!parsed.marines || !parsed.scenarios || !parsed.dateCourante) {
-      console.warn('[TroupeManager] Corrupted localStorage — falling back to initial state');
+    const parsed = JSON.parse(raw);
+    if (!isNewShape(parsed)) {
+      console.warn('[TroupeManager] Incompatible localStorage shape — falling back to initial state');
       return INITIAL_STATE;
     }
     return {
       ...parsed,
       highlightedMarineIds: parsed.highlightedMarineIds ?? [],
-      events: parsed.events ?? [],
     };
   } catch (e) {
     console.warn('[TroupeManager] Failed to parse localStorage — falling back to initial state', e);

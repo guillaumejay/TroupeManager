@@ -35,7 +35,8 @@ export function AddMarineModal({ onClose }: AddMarineModalProps) {
     e.preventDefault();
     if (!nom.trim()) return;
 
-    const nextId = `m${String(state.marines.length + 1).padStart(2, '0')}`;
+    const marineCount = state.events.filter((e) => e.type === 'marine-added').length;
+    const nextId = `m${String(marineCount + 1).padStart(2, '0')}`;
 
     dispatch({
       type: 'ADD_MARINE',
