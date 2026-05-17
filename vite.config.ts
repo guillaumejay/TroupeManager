@@ -5,6 +5,9 @@ import { version } from './package.json'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    port: 2122,
+  },
   define: {
     __APP_VERSION__: JSON.stringify(version),
   },

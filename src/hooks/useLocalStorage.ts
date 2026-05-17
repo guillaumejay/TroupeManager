@@ -1,6 +1,7 @@
 import type { CampaignState } from '../types';
 import { INITIAL_STATE } from '../data/initialState';
 import { migrateEvents } from '../utils/migration';
+import { migrateLegacyState } from '../utils/migrateLegacyState';
 
 const STORAGE_KEY = 'troupe-manager-state';
 
@@ -19,15 +20,20 @@ export function loadState(): CampaignState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return INITIAL_STATE;
     const parsed = JSON.parse(raw);
-    if (!isNewShape(parsed)) {
-      console.warn('[TroupeManager] Incompatible localStorage shape — falling back to initial state');
-      return INITIAL_STATE;
+    if (isNewShape(parsed)) {
+      return {
+        ...parsed,
+        events: migrateEvents(parsed.events),
+        highlightedMarineIds: parsed.highlightedMarineIds ?? [],
+      };
     }
-    return {
-      ...parsed,
-      events: migrateEvents(parsed.events),
-      highlightedMarineIds: parsed.highlightedMarineIds ?? [],
-    };
+    const migrated = migrateLegacyState(parsed);
+    if (migrated) {
+      console.info('[TroupeManager] Migrated legacy localStorage state to event log');
+      return { ...migrated, events: migrateEvents(migrated.events) };
+    }
+    console.warn('[TroupeManager] Incompatible localStorage shape — falling back to initial state');
+    return INITIAL_STATE;
   } catch (e) {
     console.warn('[TroupeManager] Failed to parse localStorage — falling back to initial state', e);
     return INITIAL_STATE;

@@ -1,5 +1,6 @@
 import type { CampaignState } from "../types";
 import { migrateEvents } from "../utils/migration";
+import { migrateLegacyState } from "../utils/migrateLegacyState";
 
 const GIST_API = "https://api.github.com/gists";
 const FILENAME = "troupe-manager.json";
@@ -73,14 +74,16 @@ function parseGistContent(gist: GistResponse): CampaignState {
 	} catch {
 		throw new GistError("JSON invalide dans le Gist", "PARSE");
 	}
-	if (!isCampaignState(parsed)) {
-		throw new GistError("Forme de données invalide", "PARSE");
+	if (isCampaignState(parsed)) {
+		return {
+			...parsed,
+			events: migrateEvents(parsed.events),
+			highlightedMarineIds: parsed.highlightedMarineIds ?? [],
+		};
 	}
-	return {
-		...parsed,
-		events: migrateEvents(parsed.events),
-		highlightedMarineIds: parsed.highlightedMarineIds ?? [],
-	};
+	const migrated = migrateLegacyState(parsed);
+	if (migrated) return { ...migrated, events: migrateEvents(migrated.events) };
+	throw new GistError("Forme de données invalide", "PARSE");
 }
 
 async function request<T>(url: string, init: RequestInit): Promise<T> {
